@@ -121,6 +121,13 @@
         .custom-table-container {
             scrollbar-gutter: stable;
         }
+        @keyframes soft-blink {
+            0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px currentColor; }
+            50% { opacity: 0.6; transform: scale(0.9); box-shadow: 0 0 2px currentColor; }
+        }
+        .animate-soft-blink {
+            animation: soft-blink 2s ease-in-out infinite;
+        }
         @keyframes flash-in {
             0% { transform: scale(0.8) translateY(20px); opacity: 0; }
             100% { transform: scale(1) translateY(0); opacity: 1; }
@@ -600,7 +607,15 @@
           };
 
           const selectStudentAndExpand = (id, name) => {
-             setStudentTransitionData({ name, grade: selectedGrade });
+             const studentObj = currentData.find(s => s.id === id);
+             const prom = studentObj ? studentObj.promedio : 0;
+             let dotColor = 'bg-gray-400 text-gray-400';
+             if (prom >= 4.6) dotColor = 'bg-[#22c55e] text-[#22c55e]';
+             else if (prom >= 4.0) dotColor = 'bg-[#3b82f6] text-[#3b82f6]';
+             else if (prom >= 3.0) dotColor = 'bg-[#f59e0b] text-[#f59e0b]';
+             else dotColor = 'bg-[#ef4444] text-[#ef4444]';
+
+             setStudentTransitionData({ name, grade: selectedGrade, dotColor });
              setStudentTransitionStatus('enter');
              
              setIsDropdownOpen(false);
@@ -761,10 +776,14 @@ Sé muy profesional, constructivo y directo.`;
                 
                 setTimeout(() => {
                     setSelectedGrade(classroom);
-                    if (['9', '10', '11'].includes(baseG) && currentSubjObj && currentSubjObj.active) {
-                        setCurrentView('dashboard');
+                    if (['9', '10', '11'].includes(baseG)) {
+                        if (currentSubjObj && currentSubjObj.active) {
+                            setCurrentView('dashboard');
+                        } else {
+                            setCurrentView('coming_soon_subject');
+                        }
                     } else {
-                        setCurrentView('coming_soon_subject');
+                        setCurrentView('coming_soon');
                     }
                     
                     setTimeout(() => {
@@ -858,7 +877,7 @@ Sé muy profesional, constructivo y directo.`;
                           {studentTransitionData.name}
                       </h1>
                       <div className="mt-6 inline-flex items-center gap-2 bg-white/10 px-6 py-2 md:py-3 rounded-full border border-white/20 shadow-inner relative z-10">
-                          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                          <span className={`w-2.5 h-2.5 rounded-full ${studentTransitionData.dotColor} animate-soft-blink drop-shadow-md`}></span>
                           <span className="text-white text-sm md:text-base font-bold tracking-widest uppercase">Grado {studentTransitionData.grade}</span>
                       </div>
                   </div>
