@@ -122,11 +122,11 @@
             scrollbar-gutter: stable;
         }
         @keyframes soft-blink {
-            0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px currentColor; }
-            50% { opacity: 0.6; transform: scale(0.9); box-shadow: 0 0 2px currentColor; }
+            0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 15px 2px currentColor; }
+            50% { opacity: 0.3; transform: scale(0.85); box-shadow: 0 0 2px 0px currentColor; }
         }
         .animate-soft-blink {
-            animation: soft-blink 2s ease-in-out infinite;
+            animation: soft-blink 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         @keyframes flash-in {
             0% { transform: scale(0.8) translateY(20px); opacity: 0; }
@@ -494,6 +494,29 @@
           const [loadingIA, setLoadingIA] = useState({ plan: false, email: false, obs: false, global: false });
 
           useEffect(() => {
+            window.history.pushState({ view: currentView }, "");
+          }, [currentView]);
+
+          useEffect(() => {
+            const handlePopState = (e) => {
+                setIsStudentModalOpen(false);
+                setIsListModalOpen(false);
+                setIsReprobadosModalOpen(false);
+                setIsAlertaModalOpen(false);
+                setCriterionModalData(null);
+                setIsChangeGradeModalOpen(false);
+                setIsPdfPasswordModalOpen(false);
+                setIsPasswordModalOpen(false);
+
+                if (e.state && e.state.view) {
+                    setCurrentView(e.state.view);
+                }
+            };
+            window.addEventListener('popstate', handlePopState);
+            return () => window.removeEventListener('popstate', handlePopState);
+          }, []);
+
+          useEffect(() => {
             const handleResize = () => setIsMobileView(window.innerWidth < 768);
             handleResize();
             window.addEventListener('resize', handleResize);
@@ -610,12 +633,13 @@
              const studentObj = currentData.find(s => s.id === id);
              const prom = studentObj ? studentObj.promedio : 0;
              let dotColor = 'bg-gray-400 text-gray-400';
-             if (prom >= 4.6) dotColor = 'bg-[#22c55e] text-[#22c55e]';
-             else if (prom >= 4.0) dotColor = 'bg-[#3b82f6] text-[#3b82f6]';
-             else if (prom >= 3.0) dotColor = 'bg-[#f59e0b] text-[#f59e0b]';
-             else dotColor = 'bg-[#ef4444] text-[#ef4444]';
+             let levelLabel = 'N/A';
+             if (prom >= 4.6) { dotColor = 'bg-[#22c55e] text-[#22c55e]'; levelLabel = 'Superior'; }
+             else if (prom >= 4.0) { dotColor = 'bg-[#3b82f6] text-[#3b82f6]'; levelLabel = 'Alto'; }
+             else if (prom >= 3.0) { dotColor = 'bg-[#f59e0b] text-[#f59e0b]'; levelLabel = 'Básico'; }
+             else { dotColor = 'bg-[#ef4444] text-[#ef4444]'; levelLabel = 'Bajo'; }
 
-             setStudentTransitionData({ name, grade: selectedGrade, dotColor });
+             setStudentTransitionData({ name, grade: selectedGrade, dotColor, levelLabel });
              setStudentTransitionStatus('enter');
              
              setIsDropdownOpen(false);
@@ -876,9 +900,14 @@ Sé muy profesional, constructivo y directo.`;
                       <h1 className="text-3xl md:text-5xl font-black text-white text-center shadow-black/50 drop-shadow-md max-w-2xl leading-tight relative z-10">
                           {studentTransitionData.name}
                       </h1>
-                      <div className="mt-6 inline-flex items-center gap-2 bg-white/10 px-6 py-2 md:py-3 rounded-full border border-white/20 shadow-inner relative z-10">
-                          <span className={`w-2.5 h-2.5 rounded-full ${studentTransitionData.dotColor} animate-soft-blink drop-shadow-md`}></span>
-                          <span className="text-white text-sm md:text-base font-bold tracking-widest uppercase">Grado {studentTransitionData.grade}</span>
+                      <div className="mt-6 flex flex-wrap justify-center items-center gap-3 relative z-10">
+                          <div className="inline-flex items-center gap-2 bg-white/10 px-6 py-2 md:py-3 rounded-full border border-white/20 shadow-inner">
+                              <span className="text-white text-sm md:text-base font-bold tracking-widest uppercase">Grado {studentTransitionData.grade}</span>
+                          </div>
+                          <div className="inline-flex items-center gap-2 bg-white/10 px-6 py-2 md:py-3 rounded-full border border-white/20 shadow-inner">
+                              <span className={`w-3.5 h-3.5 rounded-full ${studentTransitionData.dotColor} animate-soft-blink`}></span>
+                              <span className="text-white text-sm md:text-base font-bold tracking-widest uppercase">Nivel de desempeño {studentTransitionData.levelLabel}</span>
+                          </div>
                       </div>
                   </div>
               </div>
