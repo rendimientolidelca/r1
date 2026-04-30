@@ -1,0 +1,2206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Académico - Liceo del Caribe</title>
+    
+    <!-- Cargar Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Cargar React y ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Cargar Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Librerías para PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Animaciones y estilos personalizados -->
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        /* Animación sin transform para no romper los modales fixed */
+        @keyframes opacityFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-opacity {
+            animation: opacityFade 0.4s ease-out forwards;
+        }
+
+        /* Nuevas animaciones elegantes para el portal */
+        @keyframes scaleFadeIn {
+            0% { opacity: 0; transform: scale(0.85) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-scale-fade { 
+            animation: scaleFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+        }
+        
+        @keyframes slideUpFadeIn {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up-fade { 
+            animation: slideUpFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+            opacity: 0; 
+        }
+        /* Delays para efecto cascada en el titulo */
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+
+        /* --- ANIMACIONES DE TRANSICIÓN ESPECTACULAR (TIPO FRAMER MOTION) --- */
+        .curtain-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 99990;
+            transform: translateY(100%);
+            will-change: transform;
+        }
+        .transition-enter .curtain-layer {
+            animation: curtainUp 0.8s cubic-bezier(0.85, 0, 0.15, 1) forwards;
+        }
+        .transition-leave .curtain-layer {
+            animation: curtainLeave 0.8s cubic-bezier(0.85, 0, 0.15, 1) forwards;
+        }
+        @keyframes curtainUp {
+            0% { transform: translateY(100%); }
+            100% { transform: translateY(0%); }
+        }
+        @keyframes curtainLeave {
+            0% { transform: translateY(0%); }
+            100% { transform: translateY(-100%); }
+        }
+
+        .curtain-delay-1 { animation-delay: 0s !important; z-index: 99991; }
+        .curtain-delay-2 { animation-delay: 0.1s !important; z-index: 99992; }
+        .curtain-delay-3 { animation-delay: 0.2s !important; z-index: 99993; }
+
+        .curtain-content {
+            position: fixed;
+            inset: 0;
+            z-index: 99995;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .transition-enter .curtain-content {
+            animation: contentFadeIn 0.5s ease-out 0.5s forwards;
+        }
+        .transition-leave .curtain-content {
+            animation: contentFadeOut 0.4s ease-in forwards;
+        }
+        @keyframes contentFadeIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes contentFadeOut {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.1); }
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .custom-table-container {
+            scrollbar-gutter: stable;
+        }
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        @keyframes flash-in {
+            0% { transform: scale(0.8) translateY(20px); opacity: 0; filter: blur(10px); }
+            100% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0px); }
+        }
+        @keyframes flash-out {
+            0% { transform: scale(1); opacity: 1; filter: blur(0px); }
+            100% { transform: scale(1.5); opacity: 0; filter: blur(20px); }
+        }
+        .student-enter {
+            animation: flash-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .student-leave {
+            animation: flash-out 0.5s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect, useRef } = React;
+
+        // --- ICONOS (SVG) ---
+        const IconSearch = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>;
+        const IconUsers = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+        const IconTrendingUp = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>;
+        const IconCheckCircle = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
+        const IconAlertTriangle = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
+        const IconBookOpen = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
+        const IconTarget = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>;
+        const IconChevronDown = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>;
+        const IconBarChart2 = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>;
+        const IconSparkles = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>;
+        const IconTrophy = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>;
+        const IconMedal = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><path d="M11 12 5.12 2.2"/><path d="M13 12l5.88-9.8"/><path d="M8 7h8"/><circle cx="12" cy="17" r="5"/><path d="M12 18v-2h-.5"/></svg>;
+        const IconMail = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>;
+        const IconBrainCircuit = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/><path d="M6.002 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M19.938 10.5a4 4 0 0 1 .585.396"/><path d="M6 18a4 4 0 0 1-1.967-.516"/><path d="M19.967 17.484A4 4 0 0 1 18 18"/></svg>;
+        const IconClipboard = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1 2-2h2"/></svg>;
+        const IconX = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+        const IconFilter = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>;
+        const IconCertificate = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 9h8"/><path d="M8 13h5"/><circle cx="17" cy="15" r="2"/><path d="M15.7 16.5 15 19l2-1 2 1-.7-2.5"/></svg>;
+        const IconPrinter = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>;
+        const IconUserCircle = ({size=24, className=""}) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>
+            </svg>
+        );
+        const IconLock = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+        const IconArrowLeft = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>;
+        const IconLogOut = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+
+        /* Nuevos iconos de Asignaturas */
+        const IconLanguages = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>;
+        const IconCalculator = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>;
+        const IconFlask = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 2h7"/><path d="M10.5 2v7.5a4 4 0 0 0-1.5 2.5l-3 7a2 2 0 0 0 1.5 3h9a2 2 0 0 0 1.5-3l-3-7a4 4 0 0 0-1.5-2.5V2"/><path d="M6 14h12"/></svg>;
+        const IconGlobe = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>;
+        const IconAtom = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"/><path d="M15.7 3.8c-2.04-2.03-7.36-.02-11.9 4.5-4.54 4.52-6.54 9.87-4.5 11.9 2.04 2.03 7.36.02 11.9-4.5 4.54-4.52 6.54-9.87 4.5-11.9Z"/></svg>;
+
+        // --- BASE DE DATOS COMPLETA MULTIGRADO ---
+        const DB = {
+          "9-1": [
+            { id: "91-1", name: "Castellano Pertuz Sofia Alejandra", disciplina: 4.5, quiz: 4.1, intermedio: 2.7, final: 2.0, u0: 5.0, u1: 4.0, u2: 4.6, cuaderno: 4.7, promedio: 3.64 },
+            { id: "91-2", name: "Castillo Bastidas Eduard Andres", disciplina: 5.0, quiz: 2.7, intermedio: 2.2, final: 2.2, u0: 5.0, u1: 4.5, u2: 4.5, cuaderno: 4.4, promedio: 3.50 },
+            { id: "91-3", name: "Delgado Paz Fayrud", disciplina: 4.0, quiz: 3.5, intermedio: 2.3, final: 2.0, u0: 5.0, u1: 3.4, u2: 3.7, cuaderno: 3.5, promedio: 3.15 },
+            { id: "91-4", name: "Diaz Lanao Maria Jose", disciplina: 5.0, quiz: 4.1, intermedio: 4.3, final: 3.8, u0: 5.0, u1: 3.5, u2: 4.2, cuaderno: 2.0, promedio: 3.91 },
+            { id: "91-5", name: "Fernandez Fernandez Jesualdo", disciplina: 4.5, quiz: 4.1, intermedio: 2.6, final: 2.8, u0: 3.7, u1: 4.0, u2: 3.8, cuaderno: 2.0, promedio: 3.21 },
+            { id: "91-6", name: "Fonseca Viadero Cristian Camilo", disciplina: 3.7, quiz: 2.7, intermedio: 3.7, final: 3.0, u0: 5.0, u1: 3.8, u2: 4.0, cuaderno: 3.5, promedio: 3.60 },
+            { id: "91-7", name: "Gonzalez Avila Jheremy Siad", disciplina: 4.7, quiz: 4.1, intermedio: 2.3, final: 3.8, u0: 5.0, u1: 3.0, u2: 2.0, cuaderno: 4.6, promedio: 3.60 },
+            { id: "91-8", name: "Gonzalez Diaz Dainer Santiago", disciplina: 4.0, quiz: 3.7, intermedio: 2.3, final: 4.8, u0: 5.0, u1: 3.0, u2: 3.65, cuaderno: 2.0, promedio: 3.48 },
+            { id: "91-9", name: "Martinez Pana Angel Luis", disciplina: 4.2, quiz: 3.2, intermedio: 3.0, final: 2.0, u0: 5.0, u1: 2.2, u2: 2.0, cuaderno: 4.2, promedio: 3.12 },
+            { id: "91-10", name: "Medina Martinez Vania Sofia", disciplina: 4.5, quiz: 3.7, intermedio: 4.3, final: 2.3, u0: 5.0, u1: 3.2, u2: 4.0, cuaderno: 4.4, promedio: 3.82 },
+            { id: "91-11", name: "Meriño Amaris Danna Isabella", disciplina: 5.0, quiz: 3.7, intermedio: 2.0, final: 3.0, u0: 5.0, u1: 2.3, u2: 2.0, cuaderno: 4.4, promedio: 3.29 },
+            { id: "91-12", name: "Mondragon Barraza Alena Isabel", disciplina: 5.0, quiz: 3.8, intermedio: 3.0, final: 3.8, u0: 5.0, u1: 3.7, u2: 4.45, cuaderno: 4.0, promedio: 3.95 },
+            { id: "91-13", name: "Morales Campo Ledneyder", disciplina: 3.7, quiz: 2.0, intermedio: 3.7, final: 2.0, u0: 5.0, u1: 2.5, u2: 4.0, cuaderno: 2.0, promedio: 3.01 },
+            { id: "91-14", name: "Mozo Altamar Richar De Jesus", disciplina: 4.8, quiz: 3.7, intermedio: 3.7, final: 2.0, u0: 5.0, u1: 4.3, u2: 4.3, cuaderno: 4.8, promedio: 3.85 },
+            { id: "91-15", name: "Narvaez Montoya Martha Lucia", disciplina: 4.8, quiz: 3.7, intermedio: 4.0, final: 3.8, u0: 5.0, u1: 4.2, u2: 3.5, cuaderno: 4.4, promedio: 4.13 },
+            { id: "91-16", name: "Ojeda Ramirez Juldannes Shale", disciplina: 4.8, quiz: 4.1, intermedio: 2.5, final: 4.8, u0: 5.0, u1: 4.8, u2: 4.8, cuaderno: 4.7, promedio: 4.28 },
+            { id: "91-17", name: "Pinto Figueroa Valeria", disciplina: 3.0, quiz: 4.0, intermedio: 5.0, final: 2.0, u0: 4.0, u1: 2.2, u2: 2.0, cuaderno: 4.3, promedio: 3.40 },
+            { id: "91-18", name: "Pinto Sequea Ghersel David", disciplina: 3.6, quiz: 4.1, intermedio: 4.0, final: 2.0, u0: 5.0, u1: 2.5, u2: 4.7, cuaderno: 3.8, promedio: 3.56 },
+            { id: "91-19", name: "Piña Reyes Sebastian José", disciplina: 4.0, quiz: 5.0, intermedio: 2.0, final: 5.0, u0: 5.0, u1: 3.2, u2: 4.4, cuaderno: 4.2, promedio: 3.97 },
+            { id: "91-20", name: "Polanco Salgado Domini Estiven", disciplina: 4.8, quiz: 5.0, intermedio: 4.3, final: 3.8, u0: 5.0, u1: 3.8, u2: 4.5, cuaderno: 4.7, promedio: 4.41 },
+            { id: "91-21", name: "Rahman Gutierrez Abdel Hamid", disciplina: 4.8, quiz: 5.0, intermedio: 5.0, final: 2.5, u0: 5.0, u1: 4.8, u2: 4.5, cuaderno: 4.0, promedio: 4.28 },
+            { id: "91-22", name: "Restrepo Jimenez Andrea Carolina", disciplina: 4.3, quiz: 4.5, intermedio: 3.3, final: 2.8, u0: 5.0, u1: 2.0, u2: 4.0, cuaderno: 2.0, promedio: 3.33 },
+            { id: "91-23", name: "Rico Fontalvo Salome Anahi", disciplina: 4.5, quiz: 4.0, intermedio: 2.0, final: 2.0, u0: 5.0, u1: 3.5, u2: 4.2, cuaderno: 4.2, promedio: 3.34 },
+            { id: "91-24", name: "Romero Sanchez Kiara Valentina", disciplina: 4.2, quiz: 4.6, intermedio: 2.3, final: 3.0, u0: 5.0, u1: 2.2, u2: 3.7, cuaderno: 2.0, promedio: 3.16 },
+            { id: "91-25", name: "Sardot Rodriguez Isaac Daniel", disciplina: 3.5, quiz: 4.1, intermedio: 4.3, final: 3.33, u0: 5.0, u1: 3.0, u2: 4.4, cuaderno: 3.2, promedio: 3.81 },
+            { id: "91-26", name: "Sierra Palmar Juan Lucas", disciplina: 4.5, quiz: 4.1, intermedio: 2.3, final: 4.0, u0: 5.0, u1: 4.8, u2: 4.0, cuaderno: 4.2, promedio: 3.91 },
+            { id: "91-27", name: "Solano Pedrozo Anhelys Sofia", disciplina: 5.0, quiz: 2.7, intermedio: 2.0, final: 2.8, u0: 5.0, u1: 3.0, u2: 4.5, cuaderno: 3.1, promedio: 3.26 },
+            { id: "91-28", name: "Vergel Lopez Jesus Armando", disciplina: 4.5, quiz: 2.3, intermedio: 3.7, final: 2.8, u0: 5.0, u1: 2.2, u2: 2.0, cuaderno: 3.0, promedio: 3.21 }
+          ],
+          "9-2": [
+            { id: "92-1", name: "Amaya Peña Jose Miguel", disciplina: 3.0, quiz: 5.0, intermedio: 3.0, final: 2.0, u0: 5.0, u1: 2.2, u2: 2.7, cuaderno: 3.5, promedio: 3.13 },
+            { id: "92-2", name: "Berdugo Mena Valentina Judith", disciplina: 4.5, quiz: 3.7, intermedio: 2.0, final: 3.0, u0: 5.0, u1: 5.0, u2: 3.7, cuaderno: 4.1, promedio: 3.59 },
+            { id: "92-3", name: "Bossio Hernandez Juan Camilo", disciplina: 5.0, quiz: 2.0, intermedio: 2.0, final: 3.5, u0: 2.0, u1: 2.0, u2: 2.0, cuaderno: 2.0, promedio: 2.60 },
+            { id: "92-4", name: "Cortissoz Gomez Isabella", disciplina: 4.0, quiz: 5.0, intermedio: 3.3, final: 2.8, u0: 5.0, u1: 3.2, u2: 3.7, cuaderno: 2.0, promedio: 3.42 },
+            { id: "92-5", name: "Cristalino Rodriguez Issa Dariana", disciplina: 5.0, quiz: 3.7, intermedio: 3.0, final: 2.5, u0: 5.0, u1: 4.5, u2: 4.5, cuaderno: 4.2, promedio: 3.78 },
+            { id: "92-6", name: "Diaz Hernandez Jean Carlos", disciplina: 4.5, quiz: 2.7, intermedio: 2.5, final: 2.3, u0: 4.5, u1: 4.2, u2: 4.53, cuaderno: 4.5, promedio: 3.47 },
+            { id: "92-7", name: "Gonzalez Cambar Luis Angel", disciplina: 4.0, quiz: 3.7, intermedio: 2.0, final: 2.0, u0: 5.0, u1: 2.2, u2: 2.0, cuaderno: 3.5, promedio: 2.85 },
+            { id: "92-8", name: "Gutierrez Guzman Hade Helena", disciplina: 5.0, quiz: 4.1, intermedio: 3.3, final: 3.8, u0: 5.0, u1: 4.5, u2: 4.5, cuaderno: 5.0, promedio: 4.25 },
+            { id: "92-9", name: "Gutierrez Medina Kattia Michell", disciplina: 4.0, quiz: 3.3, intermedio: 3.3, final: 2.0, u0: 5.0, u1: 3.0, u2: 3.8, cuaderno: 3.8, promedio: 3.35 },
+            { id: "92-10", name: "Hernandez Ossa Melissa Jael", disciplina: 5.0, quiz: 2.7, intermedio: 4.3, final: 3.0, u0: 5.0, u1: 5.0, u2: 4.6, cuaderno: 4.7, promedio: 4.18 },
+            { id: "92-11", name: "Iguaran Lopez Elias Esequiel", disciplina: 4.0, quiz: 2.0, intermedio: 2.0, final: 2.0, u0: 2.0, u1: 2.0, u2: 2.0, cuaderno: 2.0, promedio: 2.20 },
+            { id: "92-12", name: "Infante Gutierrez Luis David", disciplina: 5.0, quiz: 4.5, intermedio: 4.7, final: 4.5, u0: 5.0, u1: 3.8, u2: 4.8, cuaderno: 4.5, promedio: 4.60 },
+            { id: "92-13", name: "Labarcas Benjumea Nashly Sofia", disciplina: 4.5, quiz: 4.1, intermedio: 2.0, final: 2.0, u0: 4.0, u1: 2.0, u2: 2.0, cuaderno: 3.6, promedio: 2.84 },
+            { id: "92-14", name: "Martinez Ditta Emily Sofia", disciplina: 5.0, quiz: 4.5, intermedio: 3.0, final: 3.3, u0: 5.0, u1: 4.0, u2: 4.5, cuaderno: 4.4, promedio: 4.00 },
+            { id: "92-15", name: "Medina Molina Nathya Michell", disciplina: 2.5, quiz: 2.7, intermedio: 2.0, final: 2.0, u0: 5.0, u1: 2.0, u2: 2.0, cuaderno: 2.0, promedio: 2.38 },
+            { id: "92-16", name: "Moran Navarro Brian Carlos", disciplina: 3.8, quiz: 2.7, intermedio: 2.0, final: 3.0, u0: 4.0, u1: 2.2, u2: 2.0, cuaderno: 3.7, promedio: 2.88 },
+            { id: "92-17", name: "Navarro Jimenez Gabriel Jose", disciplina: 4.0, quiz: 3.7, intermedio: 2.0, final: 2.0, u0: 4.0, u1: 3.5, u2: 3.5, cuaderno: 3.5, promedio: 3.01 },
+            { id: "92-18", name: "Olivares Heriquez Kashy Kay", disciplina: 4.3, quiz: 4.1, intermedio: 2.0, final: 2.0, u0: 4.0, u1: 4.2, u2: 3.4, cuaderno: 4.0, promedio: 3.20 },
+            { id: "92-19", name: "Otero Moreno Sebastian", disciplina: 2.5, quiz: 4.1, intermedio: 2.0, final: 2.0, u0: 5.0, u1: 2.2, u2: 2.0, cuaderno: 3.8, promedio: 2.78 },
+            { id: "92-20", name: "Pelaez Ochoa Lexi Jhoana", disciplina: 4.5, quiz: 4.5, intermedio: 3.3, final: 2.0, u0: 5.0, u1: 4.75, u2: 4.2, cuaderno: 4.5, promedio: 3.80 },
+            { id: "92-21", name: "Perna Montenegro Samuel Andres", disciplina: 4.5, quiz: 3.7, intermedio: 2.0, final: 3.8, u0: 5.0, u1: 2.2, u2: 3.2, cuaderno: 3.5, promedio: 3.37 },
+            { id: "92-22", name: "Pimienta Pana Luna Valentina", disciplina: 4.5, quiz: 3.2, intermedio: 2.0, final: 3.0, u0: 5.0, u1: 4.75, u2: 3.1, cuaderno: 3.5, promedio: 3.38 },
+            { id: "92-23", name: "Rios Gonzlez Victoria Sofia", disciplina: 4.7, quiz: 2.7, intermedio: 2.7, final: 3.5, u0: 5.0, u1: 4.2, u2: 3.9, cuaderno: 4.2, promedio: 3.72 },
+            { id: "92-24", name: "Rivera Rodriguez Zurisadai", disciplina: 4.7, quiz: 4.5, intermedio: 2.0, final: 2.0, u0: 4.0, u1: 2.0, u2: 2.0, cuaderno: 2.8, promedio: 2.79 },
+            { id: "92-25", name: "Sanchez Sanchez Valerie Sofia", disciplina: 4.5, quiz: 4.5, intermedio: 2.0, final: 2.8, u0: 3.7, u1: 4.8, u2: 4.4, cuaderno: 4.3, promedio: 3.58 },
+            { id: "92-26", name: "Solano Acosta Samuel David", disciplina: 3.7, quiz: 3.2, intermedio: 2.0, final: 2.0, u0: 5.0, u1: 2.2, u2: 2.0, cuaderno: 3.0, promedio: 2.71 },
+            { id: "92-27", name: "Terraza Jimenez Valery", disciplina: 4.5, quiz: 4.1, intermedio: 3.7, final: 2.3, u0: 5.0, u1: 3.0, u2: 3.0, cuaderno: 3.0, promedio: 3.43 },
+            { id: "92-28", name: "Toro Barraza Maria Salome", disciplina: 4.9, quiz: 3.2, intermedio: 3.7, final: 3.3, u0: 5.0, u1: 5.0, u2: 4.0, cuaderno: 4.2, promedio: 4.03 },
+            { id: "92-29", name: "Torres Duran Samuel David", disciplina: 4.5, quiz: 3.2, intermedio: 2.0, final: 2.8, u0: 5.0, u1: 4.1, u2: 3.6, cuaderno: 4.0, promedio: 3.40 },
+            { id: "92-30", name: "Valdeblanquez Diaz Valeria", disciplina: 5.0, quiz: 4.1, intermedio: 2.7, final: 2.0, u0: 4.2, u1: 5.0, u2: 4.0, cuaderno: 4.4, promedio: 3.61 },
+            { id: "92-31", name: "Yanett Suarez Tiahan Stiven", disciplina: 3.7, quiz: 3.2, intermedio: 2.0, final: 3.0, u0: 5.0, u1: 2.2, u2: 2.0, cuaderno: 2.0, promedio: 2.77 }
+          ],
+          "10-1": [
+            { id: "101-1", name: "Abuchaibe De Los Reyes Esteban", disciplina: 4.0, quiz: 4.4, intermedio: 4.3, final: 3.5, u0: 5.0, u1: 3.5, u2: 4.2, cuaderno: 4.0, promedio: 4.06 },
+            { id: "101-2", name: "Barillas Diaz Andrea Fabiana", disciplina: 5.0, quiz: 5.0, intermedio: 5.0, final: 5.0, u0: 5.0, u1: 4.8, u2: 4.5, cuaderno: 4.5, promedio: 4.86 },
+            { id: "101-3", name: "Beltran Martinez Eduard Alexander", disciplina: 5.0, quiz: 5.0, intermedio: 3.0, final: 3.0, u0: 5.0, u1: 4.8, u2: 4.5, cuaderno: 4.5, promedio: 4.06 },
+            { id: "101-4", name: "Bolivar Brito Fain Yoleidys", disciplina: 5.0, quiz: 5.0, intermedio: 5.0, final: 3.0, u0: 5.0, u1: 4.5, u2: 4.5, cuaderno: 4.0, promedio: 4.37 },
+            { id: "101-5", name: "Brito Blanco Yelizath Marcela", disciplina: 5.0, quiz: 3.33, intermedio: 4.3, final: 4.0, u0: 5.0, u1: 4.2, u2: 3.5, cuaderno: 4.7, promedio: 4.27 },
+            { id: "101-6", name: "Brito Blanco Yeraldin Marcela", disciplina: 5.0, quiz: 3.33, intermedio: 5.0, final: 3.8, u0: 5.0, u1: 4.2, u2: 3.5, cuaderno: 4.0, promedio: 4.28 },
+            { id: "101-7", name: "Castaño Daza Elva Sofia", disciplina: 2.8, quiz: 4.44, intermedio: 3.0, final: 3.0, u0: 5.0, u1: 4.8, u2: 4.0, cuaderno: 4.4, promedio: 3.74 },
+            { id: "101-8", name: "Cervantes Lopez Sheyla Yojana", disciplina: 5.0, quiz: 5.0, intermedio: 3.0, final: 3.8, u0: 5.0, u1: 4.8, u2: 4.2, cuaderno: 4.7, promedio: 4.22 },
+            { id: "101-9", name: "Corzo Aramendiz Angelo Andres", disciplina: 5.0, quiz: 4.5, intermedio: 2.9, final: 2.9, u0: 5.0, u1: 4.5, u2: 4.5, cuaderno: 4.4, promedio: 3.94 },
+            { id: "101-10", name: "Cuello Acuña Dania", disciplina: 5.0, quiz: 4.5, intermedio: 3.0, final: 3.5, u0: 5.0, u1: 4.7, u2: 4.8, cuaderno: 4.5, promedio: 4.15 },
+            { id: "101-11", name: "Diaz Daza Kaydis Julieth", disciplina: 5.0, quiz: 5.0, intermedio: 5.0, final: 3.3, u0: 5.0, u1: 4.16, u2: 3.5, cuaderno: 3.9, promedio: 4.28 },
+            { id: "101-12", name: "Duran Rodriguez Anabella Valeria", disciplina: 4.5, quiz: 5.0, intermedio: 5.0, final: 4.0, u0: 5.0, u1: 4.0, u2: 4.8, cuaderno: 4.0, promedio: 4.50 },
+            { id: "101-13", name: "Figueroa Gutierrez Sharik Massiel", disciplina: 5.0, quiz: 4.0, intermedio: 3.7, final: 4.5, u0: 5.0, u1: 4.15, u2: 4.0, cuaderno: 4.7, promedio: 4.35 },
+            { id: "101-14", name: "Gonzalez Prado Isaac Hernando", disciplina: 4.5, quiz: 4.44, intermedio: 4.3, final: 2.8, u0: 5.0, u1: 3.5, u2: 3.5, cuaderno: 4.9, promedio: 4.03 },
+            { id: "101-15", name: "Guzman Santiago Sebastian Jose", disciplina: 3.0, quiz: 5.0, intermedio: 4.3, final: 3.0, u0: 5.0, u1: 2.0, u2: 2.0, cuaderno: 4.5, promedio: 3.62 },
+            { id: "101-16", name: "Hammoud Eslava Ali Yamel", disciplina: 5.0, quiz: 5.0, intermedio: 3.7, final: 3.0, u0: 5.0, u1: 4.1, u2: 4.2, cuaderno: 3.7, promedio: 4.00 },
+            { id: "101-17", name: "Leal Quiroz Daniela Alejandra", disciplina: 3.0, quiz: 5.0, intermedio: 4.0, final: 3.5, u0: 5.0, u1: 3.75, u2: 3.0, cuaderno: 3.9, promedio: 3.84 },
+            { id: "101-18", name: "Londoño Camargo Angel David", disciplina: 5.0, quiz: 3.9, intermedio: 4.7, final: 2.5, u0: 5.0, u1: 3.8, u2: 4.0, cuaderno: 4.0, promedio: 4.01 },
+            { id: "101-19", name: "Marulanda Mejia Josue David", disciplina: 3.0, quiz: 3.33, intermedio: 2.3, final: 2.0, u0: 4.0, u1: 2.0, u2: 2.0, cuaderno: 2.0, promedio: 2.45 },
+            { id: "101-21", name: "Orozco Quintero Leonardo Enrique", disciplina: 5.0, quiz: 5.0, intermedio: 4.7, final: 5.0, u0: 5.0, u1: 4.12, u2: 4.5, cuaderno: 4.5, promedio: 4.74 },
+            { id: "101-22", name: "Povea Lopez Marwin Daniel", disciplina: 3.0, quiz: 5.0, intermedio: 3.0, final: 3.0, u0: 5.0, u1: 2.0, u2: 3.4, cuaderno: 2.0, promedio: 3.14 },
+            { id: "101-23", name: "Ramirez Padron Meryellen", disciplina: 5.0, quiz: 5.0, intermedio: 3.7, final: 3.5, u0: 5.0, u1: 4.4, u2: 4.8, cuaderno: 4.8, promedio: 4.34 },
+            { id: "101-24", name: "Reyes Petro Abiud Abner", disciplina: 4.5, quiz: 5.0, intermedio: 3.0, final: 3.5, u0: 5.0, u1: 4.7, u2: 4.6, cuaderno: 4.3, promedio: 4.09 },
+            { id: "101-25", name: "Rios Cerpa Yesid Emanuel", disciplina: 4.5, quiz: 2.22, intermedio: 3.3, final: 3.5, u0: 5.0, u1: 2.2, u2: 3.4, cuaderno: 2.0, promedio: 3.26 },
+            { id: "101-26", name: "Romero Salas Ruben Dario", disciplina: 5.0, quiz: 5.0, intermedio: 4.7, final: 5.0, u0: 5.0, u1: 2.2, u2: 2.0, cuaderno: 4.8, promedio: 4.36 },
+            { id: "101-27", name: "Rosado Boscan Sheila Andrea", disciplina: 5.0, quiz: 4.44, intermedio: 5.0, final: 4.3, u0: 5.0, u1: 3.7, u2: 4.0, cuaderno: 4.0, promedio: 4.46 },
+            { id: "101-28", name: "Soto Cadena Dulce Maria", disciplina: 3.8, quiz: 4.44, intermedio: 3.0, final: 3.5, u0: 5.0, u1: 4.4, u2: 3.2, cuaderno: 4.4, promedio: 3.83 },
+            { id: "101-29", name: "Tarrifa Boscan Jose Alfonso", disciplina: 3.0, quiz: 5.0, intermedio: 3.0, final: 3.3, u0: 5.0, u1: 4.4, u2: 2.0, cuaderno: 2.0, promedio: 3.30 },
+            { id: "101-31", name: "Vega Cardona Laura Valentina", disciplina: 4.5, quiz: 2.22, intermedio: 1.0, final: 2.3, u0: 5.0, u1: 4.0, u2: 5.0, cuaderno: 4.0, promedio: 3.17 },
+            { id: "101-32", name: "Velandia Gomez Adara Sofia", disciplina: 4.0, quiz: 5.0, intermedio: 5.0, final: 5.0, u0: 5.0, u1: 3.7, u2: 5.0, cuaderno: 4.3, promedio: 4.68 }
+          ],
+          "10-2": [
+            { id: "102-1", name: "Aragon Manga Hector Jose", disciplina: 5.0, quiz: 3.33, intermedio: 3.0, final: 3.5, u0: 5.0, u1: 3.2, u2: 3.5, cuaderno: 4.5, promedio: 3.79 },
+            { id: "102-2", name: "Avila Ramirez Isabella Sofia", disciplina: 4.0, quiz: 5.0, intermedio: 2.3, final: 2.3, u0: 4.0, u1: 3.9, u2: 3.5, cuaderno: 2.0, promedio: 3.06 },
+            { id: "102-3", name: "Barraza Boscan Maria Victoria", disciplina: 4.3, quiz: 3.33, intermedio: 2.0, final: 3.3, u0: 5.0, u1: 4.4, u2: 4.0, cuaderno: 4.4, promedio: 3.63 },
+            { id: "102-4", name: "Cabeza Zarate Mariangel", disciplina: 5.0, quiz: 4.4, intermedio: 2.0, final: 4.0, u0: 5.0, u1: 4.5, u2: 4.0, cuaderno: 4.5, promedio: 3.94 },
+            { id: "102-5", name: "Calero Daza Saimer", disciplina: 5.0, quiz: 2.8, intermedio: 2.0, final: 2.0, u0: 5.0, u1: 4.5, u2: 3.4, cuaderno: 4.5, promedio: 3.37 },
+            { id: "102-6", name: "Cardenas Linero Darla Michell", disciplina: 5.0, quiz: 4.4, intermedio: 3.4, final: 5.0, u0: 5.0, u1: 4.5, u2: 3.7, cuaderno: 4.7, promedio: 4.42 },
+            { id: "102-7", name: "Colina Linero Alicia Gisell", disciplina: 5.0, quiz: 2.0, intermedio: 2.0, final: 2.0, u0: 3.5, u1: 3.5, u2: 3.5, cuaderno: 4.0, promedio: 3.01 },
+            { id: "102-8", name: "Cotes Chinchilla Mashafiorella Monserrath", disciplina: 4.5, quiz: 2.0, intermedio: 2.0, final: 2.0, u0: 4.5, u1: 3.5, u2: 3.5, cuaderno: 4.4, promedio: 3.11 },
+            { id: "102-9", name: "Davila Rodriguez Dair Jose", disciplina: 4.0, quiz: 3.0, intermedio: 2.0, final: 2.0, u0: 5.0, u1: 4.0, u2: 3.75, cuaderno: 3.5, promedio: 3.13 },
+            { id: "102-10", name: "Duque Garcia Pablo De Jesus", disciplina: 4.7, quiz: 4.44, intermedio: 2.0, final: 2.0, u0: 4.5, u1: 4.5, u2: 4.5, cuaderno: 4.7, promedio: 3.54 },
+            { id: "102-11", name: "Hernandez Avila Henry Javier", disciplina: 4.6, quiz: 2.2, intermedio: 2.0, final: 2.3, u0: 4.0, u1: 3.4, u2: 3.2, cuaderno: 4.3, promedio: 3.09 },
+            { id: "102-12", name: "Mercado Padilla Sheiler Javid", disciplina: 4.0, quiz: 2.8, intermedio: 2.0, final: 2.0, u0: 3.0, u1: 3.2, u2: 2.0, cuaderno: 2.0, promedio: 2.47 },
+            { id: "102-13", name: "Meriño Correa Sebastian Jose", disciplina: 4.5, quiz: 4.44, intermedio: 2.0, final: 3.0, u0: 5.0, u1: 4.5, u2: 4.0, cuaderno: 4.5, promedio: 3.70 },
+            { id: "102-14", name: "Obando Alvarez Sofia Valentina", disciplina: 4.5, quiz: 2.2, intermedio: 2.0, final: 2.0, u0: 4.0, u1: 3.8, u2: 3.8, cuaderno: 4.2, promedio: 3.11 },
+            { id: "102-15", name: "Ortega Petit Shiara Valentina", disciplina: 4.5, quiz: 3.0, intermedio: 2.0, final: 3.0, u0: 5.0, u1: 4.8, u2: 2.0, cuaderno: 4.9, promedio: 3.48 },
+            { id: "102-16", name: "Otero Carvajal Lucas Santino", disciplina: 3.5, quiz: 2.3, intermedio: 2.3, final: 4.3, u0: 5.0, u1: 3.8, u2: 2.8, cuaderno: 4.0, promedio: 3.50 },
+            { id: "102-17", name: "Pinto Marquez Marco Antonio", disciplina: 5.0, quiz: 2.3, intermedio: 5.0, final: 2.0, u0: 5.0, u1: 4.4, u2: 4.8, cuaderno: 4.5, promedio: 4.05 },
+            { id: "102-18", name: "Pinto Mejia Valeria Sofia", disciplina: 5.0, quiz: 3.33, intermedio: 2.0, final: 2.0, u0: 5.0, u1: 3.5, u2: 3.5, cuaderno: 4.3, promedio: 3.29 },
+            { id: "102-19", name: "Ramirez Palmar Samantha Carolina", disciplina: 5.0, quiz: 2.5, intermedio: 2.0, final: 2.3, u0: 5.0, u1: 4.0, u2: 4.0, cuaderno: 4.0, promedio: 3.34 },
+            { id: "102-20", name: "Sierra Lopez Juan Pablo", disciplina: 4.5, quiz: 3.33, intermedio: 2.0, final: 2.0, u0: 5.0, u1: 2.0, u2: 2.0, cuaderno: 4.4, promedio: 2.97 },
+            { id: "102-21", name: "Toscano Fuentes Nikol", disciplina: 5.0, quiz: 2.2, intermedio: 2.0, final: 2.0, u0: 5.0, u1: 3.5, u2: 4.0, cuaderno: 4.6, promedio: 3.30 },
+            { id: "102-22", name: "Urbay Lopez Bellanys Shaurith", disciplina: 4.5, quiz: 3.0, intermedio: 4.7, final: 2.0, u0: 5.0, u1: 4.8, u2: 4.0, cuaderno: 4.4, promedio: 3.94 },
+            { id: "102-23", name: "Vergara Obregon Moises Alejandro", disciplina: 4.0, quiz: 5.0, intermedio: 2.0, final: 2.0, u0: 4.5, u1: 4.5, u2: 4.0, cuaderno: 3.7, promedio: 3.33 }
+          ],
+          "11-1": [
+            { id: "111-1", name: "Arguelles Peralta Samuel David", disciplina: 5.0, intermedio: 2.0, final: 4.0, p1: 3.8, p2: 3.0, p3: 3.5, p4: 4.4, p5: 4.5, p6: 3.5, p7: 3.6, promedio: 3.59 },
+            { id: "111-2", name: "Arias Tapia Dilan Jose", disciplina: 4.5, intermedio: 3.7, final: 2.83, p1: 4.6, p2: 4.0, p3: 4.3, p4: 4.5, p5: 4.0, p6: 4.0, p7: 4.3, promedio: 3.88 },
+            { id: "111-3", name: "Avila Pinto Oscar David", disciplina: 4.2, intermedio: 3.7, final: 3.3, p1: 2.0, p2: 2.0, p3: 2.0, p4: 2.0, p5: 3.5, p6: 3.0, p7: 3.5, promedio: 3.12 },
+            { id: "111-4", name: "Barrios Brito Samuel", disciplina: 4.4, intermedio: 3.3, final: 3.3, p1: 4.0, p2: 3.2, p3: 2.0, p4: 3.1, p5: 4.0, p6: 2.0, p7: 3.0, promedio: 3.30 },
+            { id: "111-5", name: "Bayter Gutierrez Edi Esteban", disciplina: 4.5, intermedio: 3.3, final: 3.8, p1: 4.0, p2: 4.3, p3: 4.5, p4: 4.0, p5: 4.0, p6: 4.5, p7: 4.0, promedio: 3.97 },
+            { id: "111-6", name: "Castro Montenegro Daines Maria", disciplina: 5.0, intermedio: 4.3, final: 3.0, p1: 3.8, p2: 3.9, p3: 4.4, p4: 4.6, p5: 4.0, p6: 4.0, p7: 4.0, promedio: 4.02 },
+            { id: "111-7", name: "Coneo Lima Neika Niccoll", disciplina: 5.0, intermedio: 3.7, final: 3.8, p1: 3.6, p2: 3.3, p3: 4.8, p4: 4.6, p5: 4.0, p6: 4.7, p7: 4.0, promedio: 4.08 },
+            { id: "111-8", name: "De La Cruz Guerra Camila Isabella", disciplina: 4.0, intermedio: 3.0, final: 3.3, p1: 3.5, p2: 2.0, p3: 3.5, p4: 4.2, p5: 4.0, p6: 3.5, p7: 3.5, promedio: 3.39 },
+            { id: "111-9", name: "Diaz Daza Aimat Fabian", disciplina: 5.0, intermedio: 4.0, final: 4.0, p1: 4.0, p2: 3.5, p3: 3.5, p4: 3.5, p5: 3.5, p6: 3.5, p7: 3.5, promedio: 3.90 },
+            { id: "111-11", name: "Fontalvo Aragon Ariadni Saraah", disciplina: 5.0, intermedio: 3.0, final: 3.0, p1: 3.8, p2: 3.5, p3: 4.1, p4: 4.5, p5: 4.2, p6: 4.56, p7: 2.0, promedio: 3.62 },
+            { id: "111-12", name: "Garcia Martinez Sinais Oredth", disciplina: 5.0, intermedio: 3.3, final: 3.0, p1: 4.6, p2: 4.5, p3: 4.7, p4: 4.6, p5: 4.5, p6: 4.5, p7: 4.4, promedio: 4.04 },
+            { id: "111-13", name: "Gutierrez Brito Mateo Andres", disciplina: 3.8, intermedio: 3.3, final: 2.8, p1: 3.66, p2: 2.0, p3: 2.0, p4: 3.0, p5: 3.8, p6: 3.0, p7: 3.0, promedio: 3.07 },
+            { id: "111-14", name: "Hernandez Santos Viandris Valentina", disciplina: 5.0, intermedio: 2.0, final: 3.8, p1: 4.25, p2: 3.65, p3: 3.9, p4: 4.6, p5: 4.0, p6: 4.3, p7: 2.5, promedio: 3.61 },
+            { id: "111-15", name: "Iguaran Peñalver Keiler Ivan", disciplina: 3.8, intermedio: 2.3, final: 3.5, p1: 4.1, p2: 3.7, p3: 3.71, p4: 3.5, p5: 4.5, p6: 3.85, p7: 3.7, promedio: 3.47 },
+            { id: "111-16", name: "Londoño Camargo Andrywt Sebastian", disciplina: 5.0, intermedio: 4.0, final: 2.8, p1: 3.5, p2: 3.8, p3: 4.4, p4: 4.5, p5: 4.3, p6: 4.6, p7: 3.8, promedio: 3.93 },
+            { id: "111-17", name: "Lopez Perez Samer David", disciplina: 4.3, intermedio: 4.3, final: 3.5, p1: 3.72, p2: 3.3, p3: 3.3, p4: 4.1, p5: 4.0, p6: 3.1, p7: 3.0, promedio: 3.75 },
+            { id: "111-18", name: "Lopez Ramirez Mariana Nikol", disciplina: 5.0, intermedio: 3.7, final: 3.3, p1: 3.0, p2: 3.0, p3: 3.0, p4: 3.0, p5: 3.0, p6: 3.0, p7: 3.0, promedio: 3.42 },
+            { id: "111-19", name: "Makensi Estor Isabella", disciplina: 5.0, intermedio: 3.7, final: 3.0, p1: 4.3, p2: 4.1, p3: 4.4, p4: 4.5, p5: 4.2, p6: 4.3, p7: 4.4, promedio: 4.01 },
+            { id: "111-20", name: "Martinez Ditta Maily Giselle", disciplina: 5.0, intermedio: 4.3, final: 3.8, p1: 3.8, p2: 4.2, p3: 3.2, p4: 3.2, p5: 4.2, p6: 3.8, p7: 4.2, promedio: 4.03 },
+            { id: "111-21", name: "Mendoza Amaya Sara Sofia", disciplina: 5.0, intermedio: 2.0, final: 3.5, p1: 4.0, p2: 3.5, p3: 4.2, p4: 4.2, p5: 2.0, p6: 4.2, p7: 2.0, promedio: 3.34 },
+            { id: "111-23", name: "Oliveros Arrieta Gianna Camila", disciplina: 4.5, intermedio: 4.3, final: 4.0, p1: 3.69, p2: 3.49, p3: 3.7, p4: 4.1, p5: 4.5, p6: 3.2, p7: 3.0, promedio: 3.95 },
+            { id: "111-24", name: "Palmar Gomez Yorieth Yiceth", disciplina: 5.0, intermedio: 2.8, final: 4.3, p1: 4.6, p2: 4.6, p3: 4.5, p4: 4.6, p5: 4.3, p6: 4.5, p7: 4.6, promedio: 4.19 },
+            { id: "111-25", name: "Peñalver Gutierrez Riqueth Maria", disciplina: 5.0, intermedio: 3.0, final: 4.5, p1: 4.5, p2: 4.5, p3: 4.5, p4: 4.25, p5: 4.6, p6: 4.5, p7: 4.5, promedio: 4.24 },
+            { id: "111-26", name: "Rivera Sanabria Mariangel", disciplina: 5.0, intermedio: 3.3, final: 2.0, p1: 4.0, p2: 3.78, p3: 3.5, p4: 4.1, p5: 4.2, p6: 2.0, p7: 4.1, promedio: 3.41 },
+            { id: "111-27", name: "Rizo Martinez Keirin Alexandra", disciplina: 5.0, intermedio: 3.7, final: 3.8, p1: 3.2, p2: 3.5, p3: 3.5, p4: 3.5, p5: 4.2, p6: 3.5, p7: 4.5, promedio: 3.86 },
+            { id: "111-28", name: "Sierra Lopez Juan Jose", disciplina: 5.0, intermedio: 4.3, final: 3.0, p1: 2.0, p2: 2.0, p3: 4.3, p4: 2.0, p5: 4.4, p6: 4.5, p7: 2.0, promedio: 3.49 },
+            { id: "111-29", name: "Sierra Villa Isabel Sofia", disciplina: 3.8, intermedio: 4.0, final: 3.8, p1: 3.8, p2: 3.9, p3: 3.6, p4: 4.0, p5: 4.0, p6: 3.9, p7: 2.0, promedio: 3.74 },
+            { id: "111-31", name: "Solano Jaimes Enrique De Jesus", disciplina: 4.4, intermedio: 3.0, final: 3.8, p1: 3.8, p2: 2.0, p3: 4.3, p4: 3.8, p5: 3.9, p6: 4.0, p7: 4.0, promedio: 3.65 },
+            { id: "111-32", name: "Solorzano Durango Laura Valentina", disciplina: 5.0, intermedio: 4.0, final: 4.0, p1: 4.0, p2: 4.3, p3: 4.6, p4: 4.3, p5: 4.3, p6: 4.6, p7: 4.4, promedio: 4.29 },
+            { id: "111-33", name: "Toro Hernandez Haran Andres", disciplina: 5.0, intermedio: 3.7, final: 3.0, p1: 2.0, p2: 2.0, p3: 2.0, p4: 2.0, p5: 4.4, p6: 2.0, p7: 4.4, promedio: 3.21 },
+            { id: "111-34", name: "Torres Ospino Eyleen Sofia", disciplina: 4.5, intermedio: 3.0, final: 2.8, p1: 3.7, p2: 2.9, p3: 3.6, p4: 4.0, p5: 3.9, p6: 3.4, p7: 3.5, promedio: 3.41 },
+            { id: "111-35", name: "Trillo Leguia Daniel Andres", disciplina: 5.0, intermedio: 4.3, final: 2.8, p1: 4.6, p2: 4.6, p3: 4.5, p4: 4.6, p5: 4.2, p6: 4.3, p7: 4.6, promedio: 4.17 },
+            { id: "111-36", name: "Vargas Orellano Yoner Jose", disciplina: 3.8, intermedio: 3.7, final: 4.3, p1: 3.7, p2: 4.0, p3: 3.5, p4: 3.9, p5: 4.5, p6: 4.0, p7: 2.0, promedio: 3.81 },
+            { id: "111-37", name: "Vasquez Ortega Brissbell", disciplina: 5.0, intermedio: 3.0, final: 3.5, p1: 3.8, p2: 3.5, p3: 4.2, p4: 4.45, p5: 2.0, p6: 4.2, p7: 3.5, promedio: 3.65 }
+          ],
+          "11-2": [
+            { id: "112-1", name: "Arteaga Blanco Gabriela", disciplina: 5.0, intermedio: 3.7, final: 4.1, p1: 4.0, p2: 4.0, p3: 4.4, p4: 4.4, p5: 4.0, p6: 4.5, p7: 4.4, promedio: 4.19 },
+            { id: "112-2", name: "Brito Solano Abraham David", disciplina: 4.5, intermedio: 4.0, final: 4.8, p1: 3.5, p2: 3.5, p3: 3.5, p4: 3.5, p5: 3.5, p6: 3.5, p7: 3.5, promedio: 4.10 },
+            { id: "112-3", name: "Chasoy Garcia Shailene Nicolle", disciplina: 5.0, intermedio: 3.0, final: 3.5, p1: 3.8, p2: 3.8, p3: 3.8, p4: 4.7, p5: 3.8, p6: 3.5, p7: 3.8, promedio: 3.74 },
+            { id: "112-4", name: "Fernandez Tetay Gabriel Jesus", disciplina: 4.0, intermedio: 4.0, final: 5.0, p1: 3.8, p2: 3.9, p3: 4.0, p4: 4.0, p5: 4.1, p6: 4.0, p7: 3.9, promedio: 4.24 },
+            { id: "112-5", name: "Garcia Ramirez Cristian Alejandro", disciplina: 5.0, intermedio: 2.6, final: 4.0, p1: 4.0, p2: 4.0, p3: 4.8, p4: 4.7, p5: 3.5, p6: 4.6, p7: 4.0, promedio: 3.88 },
+            { id: "112-6", name: "Guerrero Paba Valeria", disciplina: 5.0, intermedio: 4.7, final: 4.8, p1: 4.6, p2: 4.6, p3: 4.8, p4: 4.7, p5: 4.5, p6: 4.8, p7: 4.68, promedio: 4.76 },
+            { id: "112-7", name: "Infante Gutierrez Peter Dreick", disciplina: 5.0, intermedio: 4.3, final: 4.8, p1: 4.2, p2: 4.1, p3: 4.9, p4: 4.75, p5: 4.7, p6: 4.4, p7: 4.4, promedio: 4.60 },
+            { id: "112-8", name: "Lobo Ortega Mariangel Paola", disciplina: 5.0, intermedio: 3.7, final: 4.5, p1: 3.8, p2: 3.5, p3: 3.5, p4: 3.8, p5: 3.7, p6: 3.5, p7: 3.9, promedio: 4.09 },
+            { id: "112-9", name: "Marrugo Vidal Alejandra", disciplina: 5.0, intermedio: 2.7, final: 2.5, p1: 4.3, p2: 3.9, p3: 4.5, p4: 4.6, p5: 4.7, p6: 4.5, p7: 4.1, promedio: 3.58 },
+            { id: "112-10", name: "Marrugo Vidal Isabella", disciplina: 5.0, intermedio: 3.0, final: 3.0, p1: 4.3, p2: 4.0, p3: 4.5, p4: 4.45, p5: 3.8, p6: 4.4, p7: 4.1, promedio: 3.73 },
+            { id: "112-11", name: "Montiel Gomez Ricardo Antonio", disciplina: 5.0, intermedio: 4.3, final: 4.0, p1: 2.0, p2: 2.0, p3: 2.0, p4: 2.0, p5: 2.0, p6: 2.0, p7: 2.0, promedio: 3.53 },
+            { id: "112-12", name: "Ortega Gomez Adonay Jose", disciplina: 4.0, intermedio: 3.3, final: 4.0, p1: 4.0, p2: 3.3, p3: 3.0, p4: 3.8, p5: 4.0, p6: 2.0, p7: 3.0, promedio: 3.58 },
+            { id: "112-13", name: "Otero Moreno Luisa Fernanda", disciplina: 4.6, intermedio: 3.7, final: 4.3, p1: 3.5, p2: 3.8, p3: 3.5, p4: 4.2, p5: 4.2, p6: 3.5, p7: 4.0, promedio: 4.03 },
+            { id: "112-14", name: "Pelaez Ramirez Jose Angel", disciplina: 4.5, intermedio: 3.7, final: 4.8, p1: 3.7, p2: 3.8, p3: 3.85, p4: 4.4, p5: 4.5, p6: 3.5, p7: 4.0, promedio: 4.19 },
+            { id: "112-15", name: "Valeth Orozco Angelina", disciplina: 5.0, intermedio: 4.3, final: 4.0, p1: 3.6, p2: 3.4, p3: 3.68, p4: 4.6, p5: 4.4, p6: 2.0, p7: 2.0, promedio: 4.01 },
+            { id: "112-16", name: "Villalba Arias Zharon Lonnie", disciplina: 5.0, intermedio: 3.3, final: 4.3, p1: 4.0, p2: 4.5, p3: 4.6, p4: 4.0, p5: 4.5, p6: 4.4, p7: 4.5, promedio: 4.18 }
+          ]
+        };
+
+        // --- ESTRUCTURA DINÁMICA DE GRADOS (Niveles y Cursos) ---
+        const ESTRUCTURA_GRADOS = {
+            'Primaria': ['1', '2', '3', '4', '5'],
+            'Bachillerato': ['6', '7', '8', '9', '10', '11']
+        };
+
+        // --- CONFIGURACIÓN DINÁMICA DE CRITERIOS POR GRADO ---
+        const CRITERIA_CONFIG = {
+          "9": {
+            items: [
+              { id: 'disciplina', label: 'Disciplina (10%)', weight: 0.10 },
+              { id: 'quiz', label: 'Quiz (9%)', weight: 0.09 },
+              { id: 'examenes', label: 'Exámenes (40%)', weight: 0.40, isCombined: true, keys: ['intermedio', 'final'] },
+              { id: 'unidades', label: 'Unidades (27%)', weight: 0.27, isCombined: true, keys: ['u0', 'u1', 'u2'] },
+              { id: 'cuaderno', label: 'Cuaderno (14%)', weight: 0.14 }
+            ],
+            radarLabels: ['Disciplina', 'Quiz', 'Exámenes', 'Unidades', 'Cuaderno']
+          },
+          "10": {
+            items: [
+              { id: 'disciplina', label: 'Disciplina (10%)', weight: 0.10 },
+              { id: 'quiz', label: 'Quiz (7.5%)', weight: 0.075 },
+              { id: 'examenes', label: 'Exámenes (40%)', weight: 0.40, isCombined: true, keys: ['intermedio', 'final'] },
+              { id: 'unidades', label: 'Unidades (28.5%)', weight: 0.285, isCombined: true, keys: ['u0', 'u1', 'u2'] },
+              { id: 'cuaderno', label: 'Cuaderno (14%)', weight: 0.14 }
+            ],
+            radarLabels: ['Disciplina', 'Quiz', 'Exámenes', 'Unidades', 'Cuaderno']
+          },
+          "11": {
+            items: [
+              { id: 'disciplina', label: 'Disciplina (11%)', weight: 0.11 },
+              { id: 'examenes', label: 'Exámenes (40%)', weight: 0.40, isCombined: true, keys: ['intermedio', 'final'] },
+              { id: 'p1', label: 'Parte 1 (7%)', weight: 0.07, isPart: true },
+              { id: 'p2', label: 'Parte 2 (7%)', weight: 0.07, isPart: true },
+              { id: 'p3', label: 'Parte 3 (7%)', weight: 0.07, isPart: true },
+              { id: 'p4', label: 'Parte 4 (7%)', weight: 0.07, isPart: true },
+              { id: 'p5', label: 'Parte 5 (7%)', weight: 0.07, isPart: true },
+              { id: 'p6', label: 'Parte 6 (7%)', weight: 0.07, isPart: true },
+              { id: 'p7', label: 'Parte 7 (7%)', weight: 0.07, isPart: true }
+            ],
+            radarLabels: ['Disciplina', 'Exámenes', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7']
+          }
+        };
+
+        const INDICADORES = {
+          "9": {
+            1: "Presenta dificultades severas al estructurar oraciones en Presente Simple y falla en la construcción de preguntas básicas con Wh- words, lo que impide la interacción comunicativa elemental sobre su identidad.",
+            2: "Utiliza de manera limitada las structures de futuro (Going to y Will) para expresar planes e intenciones, pero muestra errores constantes al intentar aplicar el verbo modal Should y las respuestas cortas en contextos de salud.",
+            3: "Emplea correctamente el Presente Continuo con significado de futuro y utiliza el verbo modal Should para dar consejos de forma coherente, demostrando control sobre las expresiones de tiempo presentes y futuras.",
+            4: "Domina la estructura del Condicional Cero para expresar hechos lógicos y verdades universales, integrando con fluidez todas las formas de futuro y el sistema de preguntas y respuestas trabajado en el periodo."
+          },
+          "10": {
+            1: "Muestra confusión al diferenciar el Pasado Simple del Pasado Continuo y presenta errores notables en la formación de oraciones Comparativas y en el uso de Gerundios después de verbos específicos.",
+            2: "Construye oraciones utilizando el Primer Condicional y modales básicos, pero tiene dificultades técnicas para estructurar correctamente el Presente Perfecto, especialmente en la conjugación de verbos en participio pasado.",
+            3: "Utiliza con precisión los Gerundios y los Comparativos para describir preferencias, y narra hechos significativos usando el Presente Perfecto, integrando adecuadamente los marcadores temporales for y since.",
+            4: "Logra una integración magistral de estructuras complejas como el Presente Perfecto, modales de posibilidad (Might, Would) y tiempos continuos para relatar trayectorias de vida y proyecciones futuras con total cohesión."
+          },
+          "11": {
+            1: "Muestra dificultad extrema para relacionar definiciones con palabras técnicas o para interpretar el sentido global de un texto, presentando errores gramaticales frecuentes que impiden la comprensión de la lectura.",
+            2: "Reconoce palabras comunes de campos semánticos básicos, comprende el propósito general de señales públicas y resuelve ejercicios de gramática elemental identificando categorías como sustantivos y conectores.",
+            3: "Clasifica vocabulario técnico en campos semánticos diversos, identifica el contexto de avisos mediante etiquetas descriptivas y extrae datos fácticos de lecturas extensas aplicando técnicas de subrayado y análisis de estructura.",
+            4: "Integra conocimientos léxicos y gramaticales para resolver con éxito desafíos complejos de la prueba Saber 11; logra deducir información implícita e intenciones del autor en textos académicos y selecciona respuestas sociolingüísticas precisas en diálogos de alto nivel."
+          }
+        };
+
+        const getStudentValue = (student, item) => {
+          if (!student) return 0;
+          if (item.isCombined) {
+            const sum = item.keys.reduce((acc, key) => acc + (student[key] || 0), 0);
+            return sum / item.keys.length;
+          }
+          return student[item.id] || 0;
+        };
+
+        const App = () => {
+          const [currentView, setCurrentView] = useState('login'); 
+          const [selectedSubject, setSelectedSubject] = useState('Inglés');
+          const [subjectSearch, setSubjectSearch] = useState(''); 
+          const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+          const [isChangeGradeModalOpen, setIsChangeGradeModalOpen] = useState(false); 
+          const [passwordInput, setPasswordInput] = useState('');
+          const [passwordError, setPasswordError] = useState(false);
+          
+          // PDF Password State
+          const [isPdfPasswordModalOpen, setIsPdfPasswordModalOpen] = useState(false);
+          const [pdfPasswordInput, setPdfPasswordInput] = useState('');
+          const [pdfPasswordError, setPdfPasswordError] = useState(false);
+          
+          const [expandedLevel, setExpandedLevel] = useState(null);
+          const [expandedGrade, setExpandedGrade] = useState(null);
+          const hoverTimeoutRef = useRef(null);
+
+          const [transitionStatus, setTransitionStatus] = useState('idle'); 
+          const [transitionSubject, setTransitionSubject] = useState(null);
+          
+          const [studentTransitionStatus, setStudentTransitionStatus] = useState('idle'); 
+          const [studentTransitionData, setStudentTransitionData] = useState(null);
+
+          const [selectedGrade, setSelectedGrade] = useState("9-1");
+          const [selectedPeriod, setSelectedPeriod] = useState("P1");
+          const [searchTerm, setSearchTerm] = useState('');
+          const [deficiencySearch, setDeficiencySearch] = useState(''); 
+          const [alertaSearch, setAlertaSearch] = useState('');
+          const [criterionSearchTerm, setCriterionSearchTerm] = useState('');
+          const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+          const [isListModalOpen, setIsListModalOpen] = useState(false);
+          const [isReprobadosModalOpen, setIsReprobadosModalOpen] = useState(false);
+          const [isAlertaModalOpen, setIsAlertaModalOpen] = useState(false);
+          const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
+          const [selectedStudentId, setSelectedStudentId] = useState('');
+          const [criterionModalData, setCriterionModalData] = useState(null);
+          const [modalSearchTerm, setModalSearchTerm] = useState(''); 
+          const [isMobileView, setIsMobileView] = useState(false);
+          const [loadingPDF, setLoadingPDF] = useState(false);
+          
+          const searchRef = useRef(null);
+
+          const [aiResults, setAiResults] = useState({ plan: '', email: '', obs: '', global: '', pdfReport: '', error: '' });
+          const [loadingIA, setLoadingIA] = useState({ plan: false, email: false, obs: false, global: false });
+
+          useEffect(() => {
+            const handleResize = () => setIsMobileView(window.innerWidth < 768);
+            handleResize();
+            window.addEventListener('resize', handleResize);
+            return () => window.removeEventListener('resize', handleResize);
+          }, []);
+
+          useEffect(() => {
+            const handleClickOutside = (event) => {
+              if (searchRef.current && !searchRef.current.contains(event.target)) setIsDropdownOpen(false);
+            };
+            document.addEventListener("mousedown", handleClickOutside);
+            return () => document.removeEventListener("mousedown", handleClickOutside);
+          }, []);
+
+          useEffect(() => { 
+            document.body.style.overflow = (isListModalOpen || isReprobadosModalOpen || isAlertaModalOpen || isStudentModalOpen || isChangeGradeModalOpen || isPdfPasswordModalOpen || !!criterionModalData || transitionStatus !== 'idle') ? 'hidden' : 'unset'; 
+          }, [isListModalOpen, isReprobadosModalOpen, isAlertaModalOpen, isStudentModalOpen, isChangeGradeModalOpen, isPdfPasswordModalOpen, criterionModalData, transitionStatus]);
+
+          useEffect(() => {
+            setAiResults({ plan: '', email: '', obs: '', global: '', pdfReport: '', error: '' });
+            setSelectedStudentId(null);
+            setSearchTerm('');
+            setDeficiencySearch('');
+            setAlertaSearch('');
+            setCriterionModalData(null);
+            setCriterionSearchTerm('');
+          }, [selectedGrade, selectedSubject]);
+
+          useEffect(() => {
+            if (!criterionModalData) {
+                setCriterionSearchTerm('');
+            }
+          }, [criterionModalData]);
+
+          const groupedGrades = useMemo(() => {
+            const groups = {};
+            Object.keys(DB).forEach(key => {
+              const base = key.split('-')[0];
+              if (!groups[base]) groups[base] = [];
+              groups[base].push(key);
+            });
+            return groups;
+          }, []);
+
+          const currentData = DB[selectedGrade] || [];
+          const gradePrefix = selectedGrade.split('-')[0];
+          const config = CRITERIA_CONFIG[gradePrefix];
+
+          const filteredStudents = currentData.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
+          const sortedAllStudents = [...currentData].sort((a, b) => a.name.localeCompare(b.name));
+          const selectedStudent = currentData.find(s => s.id === selectedStudentId);
+
+          const topStudents = [...currentData].sort((a, b) => b.promedio - a.promedio).slice(0, 5); 
+          
+          const reprobadosStudents = [...currentData].filter(s => s.promedio < 3.0).sort((a, b) => a.promedio - b.promedio);
+          const alertaStudents = [...currentData].filter(s => s.promedio >= 3.0 && s.promedio <= 3.5).sort((a, b) => a.promedio - b.promedio);
+          const riskStudents = [...currentData].filter(s => s.promedio <= 3.5).sort((a, b) => a.promedio - b.promedio); 
+
+          const filteredRiskStudents = riskStudents.filter(s => s.name.toLowerCase().includes(deficiencySearch.toLowerCase()));
+          const filteredAlertaTableStudents = riskStudents.filter(s => s.name.toLowerCase().includes(alertaSearch.toLowerCase()));
+
+          const classAverages = useMemo(() => {
+            if (!currentData.length) return {};
+            const averages = {};
+            const propsToAverage = ['disciplina', 'intermedio', 'final', 'promedio'];
+            if (gradePrefix !== "11") {
+               propsToAverage.push('quiz', 'u0', 'u1', 'u2', 'cuaderno');
+            } else {
+               propsToAverage.push('p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7');
+            }
+            propsToAverage.forEach(prop => {
+              const sum = currentData.reduce((acc, curr) => acc + (curr[prop] || 0), 0);
+              averages[prop] = sum / currentData.length;
+            });
+            return averages;
+          }, [currentData, gradePrefix]);
+
+          const examMetrics = useMemo(() => {
+            let countPositive = 0;
+            const total = currentData.length;
+            
+            currentData.forEach(student => {
+              let combinedAvg = 0;
+              if (gradePrefix === "11") {
+                 combinedAvg = ((student.intermedio || 0) + (student.final || 0)) / 2; 
+              } else {
+                 combinedAvg = ((student.quiz || 0) + (student.intermedio || 0) + (student.final || 0)) / 3;
+              }
+              if (combinedAvg >= 3.0) countPositive++;
+            });
+            
+            const percentage = total > 0 ? Math.round((countPositive / total) * 100) : 0;
+            const negativeCount = total - countPositive;
+            
+            return { countPositive, total, percentage, negativeCount };
+          }, [currentData, gradePrefix]);
+
+          const getClassAverageValue = (item) => {
+            if (item.isCombined) {
+              const sum = item.keys.reduce((acc, key) => acc + (classAverages[key] || 0), 0);
+              return sum / item.keys.length;
+            }
+            return classAverages[item.id] || 0;
+          };
+
+          const getColorByValue = (val) => {
+             if (val >= 4.6) return '#22c55e';
+             if (val >= 4.0) return '#3b82f6';
+             if (val >= 3.0) return '#f59e0b';
+             return '#ef4444';
+          };
+
+          const selectStudentAndExpand = (id, name) => {
+             setStudentTransitionData({ name, grade: selectedGrade });
+             setStudentTransitionStatus('enter');
+             
+             setIsDropdownOpen(false);
+             setIsListModalOpen(false);
+             setIsReprobadosModalOpen(false);
+             setIsAlertaModalOpen(false);
+             setCriterionModalData(null);
+             setModalSearchTerm('');
+             
+             setTimeout(() => {
+                 setSelectedStudentId(id);
+                 setSearchTerm(name);
+                 setAiResults({ plan: '', email: '', obs: '', pdfReport: '', error: '' });
+                 setIsStudentModalOpen(true);
+                 
+                 setTimeout(() => {
+                     setStudentTransitionStatus('leave');
+                     setTimeout(() => {
+                         setStudentTransitionStatus('idle');
+                         setStudentTransitionData(null);
+                     }, 500);
+                 }, 100); 
+             }, 2000); 
+          };
+
+          const handleCloseModal = () => {
+             setIsStudentModalOpen(false);
+             setSearchTerm('');
+             setSelectedStudentId('');
+          };
+
+          const fetchWithBackoff = async (url, options, retries = 5) => {
+            const delays = [1000, 2000, 4000, 8000, 16000];
+            for (let i = 0; i < retries; i++) {
+              try {
+                const response = await fetch(url, options);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return await response.json();
+              } catch (error) {
+                if (i === retries - 1) throw error;
+                await new Promise(resolve => setTimeout(resolve, delays[i]));
+              }
+            }
+          };
+
+          const handlePrintPDF = async () => {
+            if (!selectedStudent) return;
+            setLoadingPDF(true);
+            try {
+                let currentPdfAiText = aiResults.pdfReport;
+                if (!currentPdfAiText) {
+                    const notasStr = config.items.map(item => `${item.label.split(' ')[0]}: ${getStudentValue(selectedStudent, item).toFixed(1)}`).join(', ');
+                    
+                    const prompt = `Eres coordinador académico de ${selectedSubject.toLowerCase()}. Genera el plan de acción y seguimiento para el estudiante ${selectedStudent.name} (Promedio: ${selectedStudent.promedio.toFixed(2)}). Notas: ${notasStr}.
+El algoritmo y uso de la inteligencia artificial debe tener un tono pedagógico y profesional, a la vez debe basarse en las mejores recomendaciones en la materia de gestión de conducta y formación según las estadísticas de dicho estudiante.
+INSTRUCCIONES ESTRICTAS DE FORMATO HTML: 
+1. NO uses markdown bajo ninguna circunstancia (NO uses asteriscos ** ni viñetas de markdown). 
+2. Usa SOLAMENTE etiquetas HTML. 
+3. Usa <h3 style="color: #991b1b; font-size: 13px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; margin-top: 12px;">Título</h3> para los encabezados de sección.
+4. Usa <b style="color: #1e293b; font-weight: 800;">texto</b> para aplicar negritas a los conceptos clave.
+5. Usa <ul style="margin-bottom: 12px; padding-left: 20px; list-style-type: disc; color: #334155; font-size: 11px; line-height: 1.5;"> y <li style="margin-bottom: 4px;"> para listas de recomendaciones.
+6. Divide la información EXACTAMENTE en 3 secciones con estos títulos OBLIGATORIOS: "PARA EL DOCENTE", "PARA EL ESTUDIANTE", "PARA LA FAMILIA".
+7. Inserta <hr style="margin: 15px 0; border: 0; border-top: 1px solid #cbd5e1;"> OBLIGATORIAMENTE justo después de terminar cada sección.
+Sé muy profesional, constructivo y directo.`;
+
+                    const apiKey = ""; 
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                    
+                    const response = await fetchWithBackoff(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+                    currentPdfAiText = response.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!currentPdfAiText) throw new Error("Fallo en la respuesta de la IA");
+                    
+                    currentPdfAiText = currentPdfAiText.replace(/\*\*(.*?)\*\*/g, '<b style="color: #1e293b; font-weight: 800;">$1</b>').replace(/```html/g, '').replace(/```/g, '').replace(/\*/g, '');
+                    setAiResults(prev => ({ ...prev, pdfReport: currentPdfAiText }));
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                
+                const pages = document.querySelectorAll('.pdf-export-page');
+                
+                for (let i = 0; i < pages.length; i++) {
+                    const canvas = await html2canvas(pages[i], {
+                        scale: 2, 
+                        useCORS: true, 
+                        logging: false,
+                        backgroundColor: '#ffffff'
+                    });
+                    
+                    if (i > 0) pdf.addPage();
+                    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                }
+                
+                pdf.save(`Reporte_Academico_${selectedStudent.name.replace(/\s+/g, '_')}.pdf`);
+            } catch (error) {
+                console.error("Error generando PDF:", error);
+                setAiResults(prev => ({ ...prev, error: "Hubo un error al generar el PDF. Verifica tu conexión a internet o asegúrate de estar en un entorno compatible." }));
+            } finally {
+                setLoadingPDF(false);
+            }
+          };
+
+          const callGeminiAPI = async (prompt, type) => {
+            setLoadingIA(prev => ({ ...prev, [type]: true }));
+            setAiResults(prev => ({ ...prev, error: '' }));
+            
+            const apiKey = ""; 
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            try {
+                const data = await fetchWithBackoff(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!text) throw new Error("Respuesta inválida de Gemini.");
+                setAiResults(prev => ({ ...prev, [type]: text }));
+            } catch(e) {
+                setAiResults(prev => ({ ...prev, error: 'Error de conexión con la Inteligencia Artificial.' }));
+            } finally {
+                setLoadingIA(prev => ({ ...prev, [type]: false }));
+            }
+          };
+
+          const handleLevelEnter = (lvl) => {
+              if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+              setExpandedLevel(lvl);
+              setExpandedGrade(null); 
+          };
+
+          const handleGradeEnter = (grd) => {
+              if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+          };
+
+          const handleMenuLeave = () => {
+              hoverTimeoutRef.current = setTimeout(() => {
+                  setExpandedLevel(null);
+                  setExpandedGrade(null);
+              }, 1500); 
+          };
+
+          const handleClassroomClick = (classroom) => {
+            setSelectedGrade(classroom);
+            const baseG = classroom.split('-')[0];
+            setIsChangeGradeModalOpen(false); 
+            if (['9', '10', '11'].includes(baseG)) {
+                setCurrentView('subjects'); 
+            } else {
+                setCurrentView('coming_soon');
+            }
+          };
+
+          const handlePasswordSubmit = (e) => {
+            e.preventDefault();
+            if (passwordInput === 'Lidelca') {
+                setIsPasswordModalOpen(false);
+                setCurrentView('home'); 
+            } else {
+                setPasswordError(true);
+            }
+          };
+
+          const triggerTransition = (subject) => {
+              setTransitionSubject(subject);
+              setTransitionStatus('enter');
+              
+              setTimeout(() => {
+                  setSelectedSubject(subject.id);
+                  setCurrentView(subject.active ? 'dashboard' : 'coming_soon_subject'); 
+                  
+                  setTimeout(() => {
+                      setTransitionStatus('leave');
+                      
+                      setTimeout(() => {
+                          setTransitionStatus('idle');
+                          setTransitionSubject(null);
+                      }, 800); 
+                  }, 1200); 
+              }, 800); 
+          };
+
+          const SectionHeader = ({ number, title, colorClass = "bg-red-700", textClass = "text-gray-800" }) => (
+            <div className="flex items-center gap-2 mb-4 border-b border-gray-200 pb-2">
+              <div className={`${colorClass} text-white w-6 h-6 rounded-sm flex items-center justify-center font-bold text-sm shrink-0 shadow-sm`}>{number}</div>
+              <h2 className={`text-lg font-bold ${textClass} uppercase tracking-wide flex items-center gap-2`}>{title}</h2>
+            </div>
+          );
+
+          const cWidth = 700, cHeight = 220;
+          const hCWidth = 370, hCHeight = config && config.items ? Math.max(350, config.items.length * 50) - 80 : 0;
+          
+          let chartData = [];
+          if (config && config.items) {
+              chartData = config.items.map((item, i) => {
+                 const val = getClassAverageValue(item);
+                 return {
+                     label: item.label,
+                     value: val,
+                     color: getColorByValue(val),
+                     x: 50 + (i + 0.5) * (cWidth / config.items.length),
+                     y: 70 + cHeight - (val / 5.0) * cHeight,
+                     hx: 130 + (val / 5.0) * hCWidth,
+                     hy: 40 + (i + 0.5) * (hCHeight / config.items.length),
+                     barWidth: (val / 5.0) * hCWidth,
+                     originalItem: item
+                 };
+              });
+          }
+
+          const studentTransitionJSX = studentTransitionStatus !== 'idle' && studentTransitionData && (
+              <div className={`fixed inset-0 z-[100000] flex items-center justify-center transition-all duration-500 ease-in-out ${studentTransitionStatus === 'enter' ? 'opacity-100 backdrop-blur-md bg-gray-900/80' : 'opacity-0 backdrop-blur-none bg-transparent pointer-events-none'}`}>
+                  <div className={`relative flex flex-col items-center justify-center p-10 md:p-14 overflow-hidden rounded-3xl bg-gradient-to-br from-red-800 to-red-900 shadow-[0_0_50px_rgba(185,28,28,0.5)] border border-red-500/30 ${studentTransitionStatus === 'enter' ? 'student-enter' : 'student-leave'}`}>
+                      <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20 pointer-events-none">
+                          <div className="absolute -top-10 -left-10 w-40 h-40 bg-white rounded-full blur-3xl animate-pulse"></div>
+                          <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-orange-400 rounded-full blur-3xl animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                      </div>
+                      <img 
+                          src="https://i.ibb.co/TB9pKchx/escudo.png" 
+                          alt="Escudo" 
+                          className="w-20 h-28 md:w-24 md:h-32 object-contain mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] animate-bounce"
+                          style={{animationDuration: '1s'}}
+                      />
+                      <h2 className="text-xs md:text-sm font-bold text-red-200 tracking-[0.3em] uppercase mb-2 drop-shadow-md">
+                          Análisis de Estudiante
+                      </h2>
+                      <h1 className="text-3xl md:text-5xl font-black text-white text-center drop-shadow-xl max-w-2xl leading-tight">
+                          {studentTransitionData.name}
+                      </h1>
+                      <div className="mt-6 inline-flex items-center gap-2 bg-white/10 px-6 py-2 md:py-3 rounded-full border border-white/20 backdrop-blur-sm shadow-inner">
+                          <span className="w-2 h-2 rounded-full bg-green-400 animate-ping"></span>
+                          <span className="text-white text-sm md:text-base font-bold tracking-widest uppercase">Grado {studentTransitionData.grade}</span>
+                      </div>
+                      <div className="absolute top-0 left-0 w-full h-1 bg-white/50 shadow-[0_0_10px_#fff] animate-[scan_1s_ease-in-out_infinite]"></div>
+                  </div>
+              </div>
+          );
+
+          const curtainJSX = transitionStatus !== 'idle' && transitionSubject && (
+              <div className={`fixed inset-0 z-[99990] transition-${transitionStatus}`}>
+                  <div className="curtain-layer curtain-delay-1 bg-red-800"></div>
+                  <div className="curtain-layer curtain-delay-2 bg-white"></div>
+                  <div className={`curtain-layer curtain-delay-3 bg-red-800`}></div>
+                  
+                  <div className="curtain-content">
+                      <img 
+                          src="https://i.ibb.co/TB9pKchx/escudo.png" 
+                          alt="Escudo Liceo del Caribe" 
+                          className="w-24 h-32 md:w-28 md:h-36 object-contain mb-6 drop-shadow-2xl"
+                      />
+                      <div className="w-24 h-24 md:w-28 md:h-28 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md mb-6 shadow-2xl">
+                          {React.cloneElement(transitionSubject.icon, { size: 56, className: "text-white drop-shadow-md" })}
+                      </div>
+                      <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-[0.2em] drop-shadow-xl text-center px-4">
+                          {transitionSubject.id}
+                      </h1>
+                      <h2 className="text-xl md:text-2xl font-bold text-white/90 uppercase tracking-widest drop-shadow-md mt-2">
+                          Grado {selectedGrade}
+                      </h2>
+                      <div className="mt-8 flex gap-2">
+                          <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{animationDelay: "0s"}}></div>
+                          <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{animationDelay: "0.2s"}}></div>
+                          <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{animationDelay: "0.4s"}}></div>
+                      </div>
+                  </div>
+              </div>
+          );
+
+          if (currentView === 'login') {
+            return (
+              <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 relative">
+                <div className="max-w-3xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-t-8 border-red-700">
+                  <div className="p-8 md:p-12 text-center bg-gradient-to-b from-red-50 to-white relative overflow-hidden">
+                    <img 
+                      src="https://i.ibb.co/TB9pKchx/escudo.png" 
+                      alt="Escudo Liceo del Caribe" 
+                      className="w-24 h-32 md:w-32 md:h-40 object-contain mx-auto mb-6 drop-shadow-xl animate-scale-fade"
+                      onError={(e) => { e.target.src = "https://placehold.co/150x180?text=Escudo"; }}
+                    />
+                    <h1 className="text-2xl md:text-4xl font-black text-red-800 uppercase tracking-tight mb-2 animate-slide-up-fade delay-100">Portal Académico y Estadístico</h1>
+                    <p className="text-base md:text-lg text-gray-600 font-medium animate-slide-up-fade delay-200">Liceo del Caribe</p>
+                  </div>
+                  
+                  <div className="p-8 md:p-12 bg-white border-t border-red-50 animate-slide-up-fade delay-300 flex justify-center">
+                      <button 
+                          onClick={() => setIsPasswordModalOpen(true)} 
+                          className="flex items-center gap-2 bg-red-700 text-white px-8 py-4 rounded-full font-black text-lg hover:bg-red-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 transform duration-300"
+                      >
+                          <IconLock size={22}/> Ingresar al Sistema
+                      </button>
+                  </div>
+                </div>
+
+                {isPasswordModalOpen && (
+                  <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-opacity">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden border-t-4 border-red-700 animate-slide-up-fade">
+                      <div className="bg-white text-gray-800 p-5 flex justify-between items-center border-b border-gray-100">
+                        <h3 className="font-bold flex items-center gap-2"><IconLock size={20} className="text-red-600" /> Autenticación</h3>
+                        <button onClick={() => setIsPasswordModalOpen(false)} className="text-gray-400 hover:text-red-600 transition-colors"><IconX size={20} /></button>
+                      </div>
+                      <form onSubmit={handlePasswordSubmit} className="p-6">
+                        <p className="text-gray-600 text-sm mb-4">Ingrese la clave de acceso del administrador institucional.</p>
+                        <div className="mb-4">
+                          <input 
+                            type="password" 
+                            placeholder="Contraseña" 
+                            className={`w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-4 transition-all ${passwordError ? 'border-red-500 focus:ring-red-100' : 'border-gray-200 focus:border-red-500 focus:ring-red-100'}`}
+                            value={passwordInput}
+                            onChange={(e) => setPasswordInput(e.target.value)}
+                            autoFocus
+                          />
+                          {passwordError && <p className="text-red-500 text-xs mt-2 font-bold animate-opacity">Contraseña incorrecta. Intente nuevamente.</p>}
+                        </div>
+                        <div className="flex gap-3 justify-end mt-6">
+                          <button type="button" onClick={() => setIsPasswordModalOpen(false)} className="px-4 py-2 rounded-lg font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors text-sm">Cancelar</button>
+                          <button type="submit" className="px-4 py-2 rounded-lg font-bold text-white bg-red-700 hover:bg-red-800 shadow-md transition-colors text-sm">Ingresar</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          if (currentView === 'home') {
+            return (
+              <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+                <div className="max-w-4xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-t-8 border-red-700">
+                  <div className="p-6 md:p-8 text-center bg-gradient-to-b from-red-50 to-white relative overflow-hidden">
+                    <img 
+                      src="https://i.ibb.co/TB9pKchx/escudo.png" 
+                      alt="Escudo Liceo del Caribe" 
+                      className="w-20 h-28 md:w-28 md:h-36 object-contain mx-auto mb-4 drop-shadow-xl animate-scale-fade"
+                      onError={(e) => { e.target.src = "https://placehold.co/150x180?text=Escudo"; }}
+                    />
+                    <h1 className="text-2xl md:text-3xl font-black text-red-800 uppercase tracking-tight mb-1 animate-slide-up-fade delay-100">Portal Académico y Estadístico</h1>
+                    <p className="text-sm md:text-base text-gray-600 font-medium animate-slide-up-fade delay-200">Liceo del Caribe</p>
+                  </div>
+                  
+                  <div className="p-6 md:p-8 bg-white border-t border-red-50 animate-slide-up-fade delay-300 min-h-[400px]">
+                    <h2 className="text-center text-sm font-bold text-gray-400 mb-6 uppercase tracking-widest">Seleccione el Nivel</h2>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-3xl mx-auto" onMouseLeave={handleMenuLeave}>
+                      {Object.keys(ESTRUCTURA_GRADOS).map(nivel => (
+                        <div key={nivel} className="flex flex-col" onMouseEnter={() => handleLevelEnter(nivel)}>
+                          
+                          <div 
+                            onClick={() => handleLevelEnter(nivel)}
+                            className={`group relative bg-white border-2 ${expandedLevel === nivel ? 'border-red-500 bg-red-50 shadow-md' : 'border-red-100 shadow-sm'} p-5 rounded-2xl transition-all duration-300 flex flex-col items-center justify-center z-10 cursor-pointer`}
+                          >
+                            <IconUsers size={28} className={`${expandedLevel === nivel ? 'text-red-600' : 'text-red-400'} mb-2 relative z-10 transition-transform duration-300`} />
+                            <span className="text-xl md:text-2xl font-black text-gray-800 relative z-10">{nivel}</span>
+                            <IconChevronDown size={18} className={`mt-2 text-gray-400 transition-transform duration-300 ${expandedLevel === nivel ? 'rotate-180' : ''}`} />
+                          </div>
+                          
+                          <div 
+                            className="overflow-hidden transition-all duration-500 ease-in-out"
+                            style={{ 
+                                maxHeight: expandedLevel === nivel ? '800px' : '0px', 
+                                opacity: expandedLevel === nivel ? 1 : 0,
+                                pointerEvents: expandedLevel === nivel ? 'auto' : 'none'
+                            }}
+                          >
+                            <div className="flex flex-col gap-3 mt-4 px-2">
+                                {ESTRUCTURA_GRADOS[nivel].map(grado => (
+                                    <div key={grado} className="flex flex-col">
+                                        
+                                        <button 
+                                            onClick={() => setExpandedGrade(expandedGrade === grado ? null : grado)}
+                                            className={`w-full text-center py-2.5 px-4 rounded-xl font-bold text-sm md:text-base transition-all cursor-pointer ${expandedGrade === grado ? 'bg-red-600 text-white shadow-md' : 'text-red-700 bg-red-50 border border-red-100 hover:bg-red-100 hover:shadow-sm'}`}>
+                                            Grado {grado}°
+                                        </button>
+
+                                        <div 
+                                          className="overflow-hidden transition-all duration-300 ease-in-out" 
+                                          style={{
+                                              maxHeight: expandedGrade === grado && expandedLevel === nivel ? '150px' : '0px',
+                                              opacity: expandedGrade === grado && expandedLevel === nivel ? 1 : 0
+                                          }}
+                                        >
+                                            <div className="flex gap-2 p-2 bg-red-50/50 rounded-b-xl border-x border-b border-red-100 justify-center">
+                                                {[1, 2].map(curso => (
+                                                    <button 
+                                                        key={curso} 
+                                                        onClick={() => handleClassroomClick(`${grado}-${curso}`)} 
+                                                        className="flex-1 py-2 bg-white border border-red-200 text-red-700 rounded-lg text-sm font-black hover:bg-red-700 hover:text-white transition-colors shadow-sm cursor-pointer"
+                                                    >
+                                                        {grado}° - {curso}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                ))}
+                            </div>
+                          </div>
+
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          if (currentView === 'coming_soon' || currentView === 'coming_soon_subject') {
+            const isSubject = currentView === 'coming_soon_subject';
+            return (
+                <>
+                <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 animate-opacity">
+                    <div className="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-t-8 border-orange-500 text-center relative p-8 md:p-12 animate-slide-up-fade">
+                        <IconAlertTriangle size={64} className="text-orange-500 mx-auto mb-6 drop-shadow-md animate-scale-fade" />
+                        <h1 className="text-2xl md:text-3xl font-black text-gray-800 uppercase tracking-tight mb-2">Módulo en Desarrollo</h1>
+                        <p className="text-gray-600 font-medium mb-8">
+                            {isSubject 
+                                ? <>El dashboard analítico para <strong className="text-orange-600">{selectedSubject}</strong> estará disponible próximamente.</>
+                                : <>El dashboard analítico para el <strong className="text-orange-600">Grado {selectedGrade}</strong> estará disponible próximamente.</>
+                            }
+                        </p>
+                        
+                        <button onClick={() => setCurrentView(isSubject ? 'subjects' : 'home')} className="flex items-center justify-center gap-2 mx-auto bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-900 px-6 py-3 rounded-full font-bold transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer">
+                            <IconArrowLeft size={18} /> Volver {isSubject ? 'a Asignaturas' : 'al Portal'}
+                        </button>
+                    </div>
+                </div>
+                {curtainJSX}
+                </>
+            );
+          }
+
+          const subjectsConfig = [
+              { id: 'Inglés', active: true, icon: <IconLanguages size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
+              { id: 'Matemáticas', active: false, icon: <IconCalculator size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
+              { id: 'Lenguaje', active: false, icon: <IconBookOpen size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
+              { id: 'C. Naturales', active: false, icon: <IconFlask size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
+              { id: 'C. Sociales', active: false, icon: <IconGlobe size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
+              { id: 'Física', active: false, icon: <IconAtom size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
+          ];
+
+          if (currentView === 'subjects') {
+              const filteredSubjects = subjectsConfig.filter(s => s.id.toLowerCase().includes(subjectSearch.toLowerCase()));
+
+              return (
+                  <>
+                  <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 relative">
+                      <div className="max-w-4xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-t-8 border-red-700 animate-slide-up-fade">
+                          <div className="p-6 md:p-8 text-center bg-gradient-to-b from-red-50 to-white relative overflow-hidden">
+                              <button onClick={() => setCurrentView('home')} className="absolute top-4 left-4 md:top-6 md:left-6 flex items-center gap-1 text-red-700 hover:text-red-900 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-colors shadow-sm cursor-pointer">
+                                  <IconArrowLeft size={16}/> Volver
+                              </button>
+                              <img 
+                                  src="https://i.ibb.co/TB9pKchx/escudo.png" 
+                                  alt="Escudo Liceo del Caribe" 
+                                  className="w-20 h-28 md:w-24 md:h-32 object-contain mx-auto mb-4 drop-shadow-xl animate-scale-fade"
+                                  onError={(e) => { e.target.src = "https://placehold.co/150x180?text=Escudo"; }}
+                              />
+                              <h1 className="text-2xl md:text-3xl font-black text-red-800 uppercase tracking-tight mb-1 animate-slide-up-fade delay-100">Área Académica</h1>
+                              <p className="text-sm md:text-base text-gray-600 font-medium animate-slide-up-fade delay-200">Grado seleccionado: <span className="font-bold text-red-700">{selectedGrade}</span></p>
+                          </div>
+                          
+                          <div className="p-6 md:p-8 bg-white border-t border-red-50 animate-slide-up-fade delay-300">
+                              <h2 className="text-center text-sm font-bold text-gray-400 mb-6 uppercase tracking-widest">Seleccione la Asignatura</h2>
+                              
+                              <div className="relative mb-6 max-w-md mx-auto shrink-0">
+                                <input 
+                                  type="text" 
+                                  placeholder="Buscar asignatura..." 
+                                  value={subjectSearch} 
+                                  onChange={e => setSubjectSearch(e.target.value)} 
+                                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-red-500 focus:border-red-500 outline-none transition-shadow shadow-sm bg-gray-50" 
+                                />
+                                <IconSearch size={18} className="absolute left-3.5 top-3 text-gray-400" />
+                              </div>
+
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+                                  {filteredSubjects.map(s => (
+                                      <button
+                                          key={s.id}
+                                          onClick={() => triggerTransition(s)}
+                                          className={`group relative bg-white border-2 ${s.border} p-3 md:p-4 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1 shadow-sm cursor-pointer ${s.hover}`}
+                                      >
+                                          <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center ${s.bg} mb-2 md:mb-3 group-hover:scale-110 transition-transform duration-300`}>
+                                              {React.cloneElement(s.icon, { className: "text-red-600" })} 
+                                          </div>
+                                          <span className={`text-sm md:text-base font-black text-gray-800`}>{s.id}</span>
+                                          <span className={`text-[9px] md:text-[10px] font-bold uppercase mt-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity`}>
+                                              {s.active ? 'Ingresar' : 'Próximamente'}
+                                          </span>
+                                      </button>
+                                  ))}
+                                  {filteredSubjects.length === 0 && (
+                                    <div className="col-span-2 md:col-span-3 text-center py-6 text-gray-400 text-sm">
+                                      No se encontraron asignaturas.
+                                    </div>
+                                  )}
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+                  {curtainJSX}
+                  </>
+              );
+          }
+
+          // --- COMPONENTE OCULTO DE IMPRESIÓN PDF (TEMPLATE SOBRIO) ---
+          const renderPrintTemplate = () => {
+              if (!selectedStudent || !config) return null;
+
+              const sorted = [...currentData].sort((a,b)=>b.promedio-a.promedio);
+              const rank = sorted.findIndex(s => s.id === selectedStudent.id) + 1;
+
+              const prom = selectedStudent.promedio;
+              let statusTitle, statusDesc, level;
+              if (prom >= 4.6) { level = 4; statusTitle = 'INDICADOR SUPERIOR'; }
+              else if (prom >= 4.0) { level = 3; statusTitle = 'INDICADOR ALTO'; }
+              else if (prom >= 3.0) { level = 2; statusTitle = 'INDICADOR BÁSICO'; }
+              else { level = 1; statusTitle = 'INDICADOR BAJO'; }
+              statusDesc = INDICADORES[gradePrefix][level];
+
+              // Paginación de 7 items máximo para cuidar los margenes y la limpieza visual.
+              const maxItemsPerPage = 7;
+              const chunks = [];
+              for (let i = 0; i < config.items.length; i += maxItemsPerPage) {
+                  chunks.push(config.items.slice(i, i + maxItemsPerPage));
+              }
+
+              // Lógica Base Radar SVG para imprimir - AJUSTADO PARA DAR ESPACIO
+              const rSize = 420;
+              const rCx = rSize / 2;
+              const rCy = rSize / 2;
+              const rRadius = rSize * 0.35;
+              const rMaxV = 5.0;
+              const rLabels = config.items.map(item => item.label);
+              const rStudentVals = config.items.map(item => getStudentValue(selectedStudent, item));
+              const rAvgVals = config.items.map(item => getClassAverageValue(item));
+              const getRPoint = (val, i, total) => {
+                  const angle = (Math.PI * 2 * i / total) - (Math.PI / 2);
+                  const r = (val / rMaxV) * rRadius;
+                  return { x: rCx + r * Math.cos(angle), y: rCy + r * Math.sin(angle), angle: angle, val: val.toFixed(1) };
+              };
+              const createPolygon = (pts) => `M ${pts.map(p => `${p.x},${p.y}`).join(' L ')} Z`;
+              const rStudentPoints = rStudentVals.map((v, i) => getRPoint(v, i, rLabels.length));
+              const rAvgPoints = rAvgVals.map((v, i) => getRPoint(v, i, rLabels.length));
+              const rLevelsSvg = [1, 2, 3, 4, 5];
+
+              const criteria = config.items.map(item => ({
+                  name: item.label.split(' ')[0],
+                  val: getStudentValue(selectedStudent, item),
+                  avg: getClassAverageValue(item)
+              })).sort((a, b) => b.val - a.val);
+              const strongest = criteria[0];
+              const weakest = criteria[criteria.length - 1];
+              const diffStrong = (strongest.val - strongest.avg).toFixed(1);
+              const diffWeak = (weakest.val - weakest.avg).toFixed(1);
+              const strongText = diffStrong >= 0 ? `(+${diffStrong} respecto al promedio grupal)` : `(${diffStrong} respecto al promedio grupal)`;
+              const weakText = diffWeak >= 0 ? `(+${diffWeak} respecto al promedio grupal)` : `(${diffWeak} respecto al promedio grupal)`;
+
+              return (
+                  <div id="pdf-export-container" className="fixed top-[200vh] left-[200vw] z-[-9999] opacity-0 pointer-events-none bg-gray-200 p-10">
+                      
+                      {/* PÁGINAS 1 a N: TABLAS Y BARRAS */}
+                      {chunks.map((chunk, index) => (
+                          <div key={`page-${index}`} className="pdf-export-page w-[794px] h-[1123px] bg-white p-[45px] flex flex-col relative box-border text-gray-800 font-sans mb-10">
+                              
+                              {/* HEADER COMPACTO SOBRIO */}
+                              <div className="flex justify-between items-center border-b-[3px] border-gray-900 pb-2 mb-4 shrink-0">
+                                  <img src="https://i.ibb.co/TB9pKchx/escudo.png" alt="Escudo" className="w-[55px] h-[75px] object-contain" crossOrigin="anonymous" />
+                                  <div className="text-right flex flex-col justify-end">
+                                      <h1 className="text-[22px] font-black text-gray-900 uppercase tracking-tighter leading-none mb-1">REPORTE ACADÉMICO Y ESTADÍSTICO</h1>
+                                      <h2 className="text-[13px] font-bold text-gray-700 uppercase leading-none mb-1">ASIGNATURA: {selectedSubject}</h2>
+                                      <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Liceo del Caribe | Grado {selectedGrade} | Periodo: P1</p>
+                                  </div>
+                              </div>
+
+                              {/* INFO DEL ESTUDIANTE */}
+                              <div className="mb-4 shrink-0 border-l-4 border-gray-800 pl-3">
+                                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-0.5 leading-none">ESTUDIANTE</p>
+                                  <h2 className="text-[20px] font-black text-gray-900 uppercase leading-tight mb-1">{selectedStudent.name}</h2>
+                                  <p className="text-[10px] font-black text-blue-700 uppercase tracking-widest leading-none">RANKING DEL CURSO: #{rank} DE {currentData.length}</p>
+                              </div>
+
+                              {/* CAJA DE PROMEDIO E INDICADOR (COMPACTA Y HORIZONTAL) */}
+                              <div className="flex bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 shrink-0 items-center">
+                                  <div className="pr-5 border-r border-gray-300 shrink-0 text-center">
+                                      <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">PROMEDIO FINAL</p>
+                                      <p className="text-3xl font-black leading-none" style={{color: getColorByValue(selectedStudent.promedio)}}>{selectedStudent.promedio.toFixed(2)}</p>
+                                  </div>
+                                  <div className="pl-5 flex-1">
+                                      <h4 className="font-black text-sm uppercase tracking-wide mb-1" style={{color: getColorByValue(selectedStudent.promedio)}}>{statusTitle}</h4>
+                                      <p className="text-[11px] text-gray-700 leading-snug font-medium text-justify">{statusDesc}</p>
+                                  </div>
+                              </div>
+
+                              {/* 2 COLUMNAS: BARRAS A LA IZQUIERDA Y TABLA A LA DERECHA */}
+                              <div className="grid grid-cols-2 gap-8 flex-1 content-start mt-2">
+                                  {/* Izquierda: Desglose Analítico */}
+                                  <div className="flex flex-col">
+                                      <h3 className="text-[11px] font-black text-gray-800 uppercase tracking-wider border-b border-gray-300 pb-1.5 mb-3">DESGLOSE DE NOTAS ANALÍTICAS</h3>
+                                      <div className="flex flex-col gap-3">
+                                          {chunk.map((item, idx) => {
+                                              const val = getStudentValue(selectedStudent, item);
+                                              const avg = getClassAverageValue(item);
+                                              return (
+                                                  <div key={`bar-${idx}`} className="mb-1">
+                                                      <div className="flex justify-between items-end mb-1">
+                                                          <span className="text-[10px] font-bold text-gray-600 uppercase">{item.label}</span>
+                                                          <span className="text-[11px] font-black" style={{color: getColorByValue(val)}}>{val.toFixed(1)} <span className="text-gray-400 font-bold text-[9px]">/ 5.0</span></span>
+                                                      </div>
+                                                      <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden mb-1">
+                                                          <div className="h-full rounded-full" style={{width: `${(val/5)*100}%`, backgroundColor: getColorByValue(val)}}></div>
+                                                      </div>
+                                                      <p className="text-[9px] text-gray-400 font-bold uppercase">Promedio del grupo: {avg.toFixed(2)}</p>
+                                                  </div>
+                                              );
+                                          })}
+                                      </div>
+                                  </div>
+
+                                  {/* Derecha: Comparativa Numérica (Tabla) */}
+                                  <div className="flex flex-col">
+                                      <h3 className="text-[11px] font-black text-gray-800 uppercase tracking-wider border-b border-gray-300 pb-1.5 mb-3">COMPARATIVA NUMÉRICA DETALLADA</h3>
+                                      <table className="w-full text-[10px] text-left border-collapse border border-gray-200">
+                                          <thead className="bg-gray-100">
+                                              <tr>
+                                                  <th className="py-2 px-2 border-b border-gray-200 font-bold uppercase text-gray-700 tracking-wider">CRITERIO</th>
+                                                  <th className="py-2 px-2 border-b border-gray-200 font-bold uppercase text-center text-gray-700 tracking-wider w-12">IND.</th>
+                                                  <th className="py-2 px-2 border-b border-gray-200 font-bold uppercase text-center text-gray-700 tracking-wider w-12">CURSO</th>
+                                                  <th className="py-2 px-2 border-b border-gray-200 font-bold uppercase text-center text-gray-700 tracking-wider w-16">BRECHA</th>
+                                              </tr>
+                                          </thead>
+                                          <tbody>
+                                              {chunk.map((item, idx) => {
+                                                  const val = getStudentValue(selectedStudent, item);
+                                                  const avg = getClassAverageValue(item);
+                                                  const diff = (val - avg).toFixed(1);
+                                                  return (
+                                                      <tr key={`row-${idx}`} className="border-b border-gray-100 last:border-0">
+                                                          <td className="py-2.5 px-2 font-bold text-gray-700 uppercase">{item.label.split(' ')[0]}</td>
+                                                          <td className="py-2.5 px-2 font-black text-center" style={{color: getColorByValue(val)}}>{val.toFixed(1)}</td>
+                                                          <td className="py-2.5 px-2 font-bold text-gray-500 text-center">{avg.toFixed(1)}</td>
+                                                          <td className="py-2.5 px-2 font-black text-center">
+                                                              <span className={diff > 0 ? 'text-green-600' : diff == 0 ? 'text-gray-500' : 'text-red-600'}>{diff > 0 ? '+'+diff : diff}</span>
+                                                          </td>
+                                                      </tr>
+                                                  );
+                                              })}
+                                          </tbody>
+                                      </table>
+                                  </div>
+                              </div>
+
+                              <div className="absolute bottom-10 left-10 right-10 border-t border-gray-300 pt-3 text-center shrink-0">
+                                  <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">DOCUMENTO OFICIAL GENERADO AUTOMÁTICAMENTE | LICEO DEL CARIBE</p>
+                              </div>
+                          </div>
+                      ))}
+
+                      {/* PÁGINA: ANÁLISIS RADIAL */}
+                      <div className="pdf-export-page w-[794px] h-[1123px] bg-white p-[45px] flex flex-col relative box-border text-gray-800 font-sans mb-10">
+                          <div className="flex justify-between items-center border-b-[3px] border-gray-900 pb-2 mb-6 shrink-0">
+                              <img src="https://i.ibb.co/TB9pKchx/escudo.png" alt="Escudo" className="w-[55px] h-[75px] object-contain" crossOrigin="anonymous" />
+                              <div className="text-right flex flex-col justify-end">
+                                  <h1 className="text-[22px] font-black text-gray-900 uppercase tracking-tighter leading-none mb-1">ANÁLISIS GRÁFICO Y RADIALES</h1>
+                                  <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">ESTUDIANTE: {selectedStudent.name}</p>
+                              </div>
+                          </div>
+
+                          <h3 className="text-[14px] font-black text-gray-800 uppercase tracking-widest text-center mb-4">HUELLA DE RENDIMIENTO RADIAL ESTRUCTURADA</h3>
+                          
+                          <div className="flex-1 flex flex-col items-center justify-center shrink-0">
+                              <div className="w-[420px] h-[420px]">
+                                  <svg viewBox={`0 0 ${rSize} ${rSize}`} className="w-full h-full font-sans overflow-visible">
+                                      {rLevelsSvg.map(level => {
+                                          const levelPts = rLabels.map((_, i) => getRPoint(level, i, rLabels.length));
+                                          return (
+                                              <g key={`grid-level-print-${level}`}>
+                                                  <path d={createPolygon(levelPts)} fill="none" stroke="#e5e7eb" strokeWidth="1" />
+                                                  <text x={rCx} y={rCy - ((level/rMaxV) * rRadius) - 4} fontSize="10" fill="#9ca3af" textAnchor="end">{level}.0</text>
+                                              </g>
+                                          );
+                                      })}
+                                      {rLabels.map((lbl, i) => {
+                                          const endPt = getRPoint(5, i, rLabels.length);
+                                          const labelOffset = 30; 
+                                          const labelR = rRadius + labelOffset;
+                                          const lx = rCx + labelR * Math.cos(endPt.angle);
+                                          const ly = rCy + labelR * Math.sin(endPt.angle);
+                                          const cos = Math.cos(endPt.angle);
+                                          let anchor = 'middle';
+                                          if (Math.abs(cos) > 0.1) anchor = cos > 0 ? 'start' : 'end';
+                                          return (
+                                              <g key={`axis-print-${i}`}>
+                                                  <line x1={rCx} y1={rCy} x2={endPt.x} y2={endPt.y} stroke="#e5e7eb" strokeWidth="1.5" />
+                                                  <text x={lx} y={ly + 4} fontSize="12" fill="#4b5563" fontWeight="bold" textAnchor={anchor}>{lbl}</text>
+                                              </g>
+                                          );
+                                      })}
+                                      <path d={createPolygon(rAvgPoints)} fill="rgba(156, 163, 175, 0.15)" stroke="#9ca3af" strokeWidth="2" strokeDasharray="6 4" />
+                                      <path d={createPolygon(rStudentPoints)} fill="rgba(37, 99, 235, 0.25)" stroke="#2563eb" strokeWidth="3" strokeLinejoin="round" />
+                                      {rStudentPoints.map((p, i) => (
+                                          <g key={`sp-print-${i}`}>
+                                              <circle cx={p.x} cy={p.y} r="5" fill="#2563eb" stroke="#ffffff" strokeWidth="2"/>
+                                              <rect x={p.x - 14} y={p.y - 22} width="28" height="14" rx="4" fill="#2563eb" />
+                                              <text x={p.x} y={p.y - 12} fontSize="10" fill="#ffffff" textAnchor="middle" fontWeight="bold">{p.val}</text>
+                                          </g>
+                                      ))}
+                                      {rAvgPoints.map((p, i) => <circle key={`ap-print-${i}`} cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#9ca3af" strokeWidth="2" />)}
+                                  </svg>
+                              </div>
+                          </div>
+
+                          <div className="mt-4 bg-gray-50 p-5 border border-gray-200 rounded-lg shrink-0">
+                              <h4 className="font-bold text-gray-800 uppercase text-[12px] mb-2 tracking-wider">INTERPRETACIÓN DE DATOS RADIAL</h4>
+                              <div className="text-[12px] text-gray-700 leading-relaxed space-y-2 text-justify font-medium">
+                                  <p>El gráfico radial describe numéricamente la distribución de las calificaciones de <strong>{selectedStudent.name}</strong>. El valor máximo en su rendimiento corresponde a <strong>{strongest.name}</strong> con una nota de <strong>{strongest.val.toFixed(1)}</strong> {strongText}. En el extremo opuesto, el valor mínimo se registra en <strong>{weakest.name}</strong> con una nota de <strong>{weakest.val.toFixed(1)}</strong> {weakText}.</p>
+                                  <p className="border-l-[3px] border-gray-400 pl-3"><strong>Análisis general:</strong> Con un promedio final de {selectedStudent.promedio.toFixed(2)}, los datos indican un desempeño {selectedStudent.promedio >= 4.0 ? 'Alto/Superior. Las variables analizadas superan la media del curso en su mayoría, evidenciando consistencia en los criterios de evaluación.' : selectedStudent.promedio >= 3.0 ? 'Básico. El estudiante cumple con los requisitos de aprobación, pero se identifica una desviación negativa importante en sus métricas más bajas que requiere nivelación.' : 'Bajo. Las métricas graficadas presentan una contracción generalizada respecto al promedio del grupo, confirmando deficiencias en múltiples criterios de evaluación.'}</p>
+                              </div>
+                          </div>
+
+                          <div className="absolute bottom-10 left-10 right-10 border-t border-gray-300 pt-3 text-center shrink-0">
+                              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">DOCUMENTO OFICIAL GENERADO AUTOMÁTICAMENTE | LICEO DEL CARIBE</p>
+                          </div>
+                      </div>
+
+                      {/* PÁGINA: PLAN DE ACCIÓN IA */}
+                      <div className="pdf-export-page w-[794px] h-[1123px] bg-white p-[45px] flex flex-col relative box-border text-gray-800 font-sans mb-10">
+                          <div className="flex justify-between items-center border-b-[3px] border-gray-900 pb-2 mb-8 shrink-0">
+                              <img src="https://i.ibb.co/TB9pKchx/escudo.png" alt="Escudo" className="w-[55px] h-[75px] object-contain" crossOrigin="anonymous" />
+                              <div className="text-right flex flex-col justify-end">
+                                  <h1 className="text-[22px] font-black text-gray-900 uppercase tracking-tighter leading-none mb-1">PLAN DE MEJORA Y SEGUIMIENTO</h1>
+                                  <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">ESTUDIANTE: {selectedStudent.name}</p>
+                              </div>
+                          </div>
+
+                          <h3 className="text-[14px] font-black text-gray-800 uppercase tracking-widest mb-1 text-center">PLAN DE ACCIÓN Y RECOMENDACIONES INSTITUCIONALES</h3>
+                          <p className="text-[11px] text-gray-500 text-center font-bold uppercase tracking-wide mb-8">Recomendaciones metodológicas generadas con base en las estadísticas del periodo actual.</p>
+
+                          <div className="flex-1 text-[12px] leading-relaxed text-gray-800 text-justify" dangerouslySetInnerHTML={{ __html: aiResults.pdfReport || '<p class="text-center text-gray-400 mt-10 font-bold uppercase">Generando reporte de IA...</p>' }} />
+
+                          <div className="absolute bottom-10 left-10 right-10 border-t border-gray-300 pt-3 text-center shrink-0">
+                              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">DOCUMENTO OFICIAL GENERADO AUTOMÁTICAMENTE | LICEO DEL CARIBE</p>
+                          </div>
+                      </div>
+
+                  </div>
+              );
+          };
+
+          // Lógica para Modales Genéricos
+          let genericModalList = [];
+          let genericModalTitle = "";
+          let genericValExtractor = (s) => s.promedio;
+
+          if (isListModalOpen) {
+              genericModalList = currentData;
+              genericModalTitle = "Directorio de Estudiantes";
+          } else if (isReprobadosModalOpen) {
+              genericModalList = reprobadosStudents;
+              genericModalTitle = "Estudiantes Reprobados";
+          } else if (isAlertaModalOpen) {
+              genericModalList = alertaStudents;
+              genericModalTitle = "Alerta Temprana";
+          } else if (criterionModalData) {
+              genericModalList = sortedAllStudents;
+              genericModalTitle = `Rendimiento: ${criterionModalData.label}`;
+              genericValExtractor = (s) => getStudentValue(s, criterionModalData);
+          }
+
+          const filteredGenericList = genericModalList.filter(s => s.name.toLowerCase().includes(modalSearchTerm.toLowerCase()));
+
+          return (
+            <>
+            <div className="min-h-screen bg-gray-50 text-gray-800 font-sans p-4 md:p-8 relative">
+              <div className="animate-opacity">
+                
+                <div className="max-w-6xl mx-auto bg-white rounded-t-xl shadow-lg border-t-8 border-red-700 mb-6 relative">
+                  <div className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 bg-gradient-to-r from-red-50 to-white rounded-t-lg">
+                    <div className="flex items-center gap-4 md:gap-6 flex-1 w-full">
+                      <div 
+                          className="w-16 h-20 md:w-20 md:h-24 flex items-center justify-center shrink-0 cursor-pointer hover:scale-105 hover:opacity-90 transition-all duration-300"
+                          onClick={() => setCurrentView('home')}
+                          title="Ir a la pantalla de selección de grados"
+                      >
+                        <img 
+                          src="https://i.ibb.co/TB9pKchx/escudo.png" 
+                          alt="Escudo Liceo del Caribe" 
+                          className="w-full h-full object-contain bg-transparent"
+                          style={{ backgroundColor: 'transparent' }}
+                          onError={(e) => { e.target.src = "https://placehold.co/100x120?text=Escudo"; }}
+                        />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-3 mb-1">
+                          <button onClick={() => setCurrentView('subjects')} className="flex items-center gap-1 text-red-700 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-full text-xs font-bold transition-colors">
+                            <IconArrowLeft size={14}/> Cambiar asignatura
+                          </button>
+                        </div>
+                        <h1 className="text-xl md:text-2xl font-black text-red-800 uppercase leading-none">Rendimiento Académico - {selectedSubject}</h1>
+                        
+                        <div className="flex flex-wrap items-center gap-3 mt-3">
+                          <div className="relative">
+                              <div className="flex items-center gap-2 bg-red-700 text-white font-bold py-1.5 px-4 rounded-full shadow-sm border border-red-800 text-sm">
+                                  <IconUsers size={16} /> 
+                                  Grado {selectedGrade} 
+                              </div>
+                          </div>
+
+                          <div className="relative">
+                              <select value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)} className="appearance-none bg-white border border-gray-300 text-gray-700 font-bold py-1.5 pl-4 pr-8 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-200 cursor-pointer shadow-sm text-sm hover:bg-gray-50 transition-colors">
+                                  <option value="P1">Periodo 1 (Activo)</option>
+                                  <option value="P2" disabled>Periodo 2 (Próximamente)</option>
+                                  <option value="P3" disabled>Periodo 3 (Próximamente)</option>
+                                  <option value="P4" disabled>Periodo 4 (Próximamente)</option>
+                              </select>
+                              <IconFilter size={12} className="absolute right-3 top-2.5 text-gray-400 pointer-events-none"/>
+                          </div>
+
+                          <button 
+                            onClick={() => setIsChangeGradeModalOpen(true)}
+                            className="flex items-center gap-1.5 bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 font-bold py-1.5 px-4 rounded-full transition-all duration-300 shadow-sm border border-gray-200 text-sm"
+                          >
+                              Cambiar Grado <IconLogOut size={14} className="ml-1 opacity-70" />
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2 font-medium">Liceo del Caribe - Base de Datos Dinámica</p>
+                      </div>
+                    </div>
+
+                    <div className="w-full md:w-auto md:min-w-[320px] relative z-50 shrink-0" ref={searchRef}>
+                      <div className="relative group">
+                        <input 
+                          type="text"
+                          className="w-full bg-white border-2 border-gray-300 text-gray-700 py-3 px-5 pr-12 rounded-full leading-tight focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-100 shadow-sm font-medium transition-all"
+                          placeholder={`Buscar en ${selectedGrade}...`}
+                          value={searchTerm}
+                          onChange={(e) => {
+                            setSearchTerm(e.target.value);
+                            setIsDropdownOpen(true);
+                          }}
+                          onClick={() => setIsDropdownOpen(true)}
+                        />
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-5 text-gray-400 group-focus-within:text-red-500 transition-colors"><IconSearch size={22} /></div>
+                      </div>
+                      {isDropdownOpen && (
+                        <div className="absolute right-0 z-[100] w-full md:w-[400px] mt-2 bg-white border border-gray-200 rounded-lg shadow-2xl max-h-80 overflow-y-auto animate-opacity">
+                          {filteredStudents.length > 0 ? (
+                            filteredStudents.map(s => (
+                              <div key={s.id} className="px-5 py-3 hover:bg-red-50 cursor-pointer border-b border-gray-100 last:border-0 flex justify-between items-center transition-colors" onClick={() => selectStudentAndExpand(s.id, s.name)}>
+                                <span className="font-medium text-gray-800 text-sm">{s.name}</span>
+                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${s.promedio >= 4 ? 'bg-green-100 text-green-700' : s.promedio >= 3 ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>{s.promedio.toFixed(2)}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-5 py-6 text-center text-gray-500 text-sm"><IconSearch size={32} className="mx-auto mb-2 opacity-30"/>No se encontraron coincidencias.</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="max-w-6xl mx-auto space-y-6">
+                  
+                  <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <SectionHeader number="1" title={`Métricas Clave | Grado ${selectedGrade}`} colorClass="bg-teal-700" textClass="text-teal-900" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      
+                      <div onClick={() => setIsListModalOpen(true)} className="bg-gray-50 rounded-lg p-4 flex items-center border border-gray-200 cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all shadow-sm hover:shadow-md active:scale-95 group" title="Ver lista completa">
+                        <div className="bg-blue-100 p-3 rounded-full mr-3 text-blue-700 group-hover:bg-blue-600 group-hover:text-white transition-colors"><IconUsers size={24} /></div>
+                        <div>
+                          <p className="text-xs text-gray-500 font-semibold uppercase group-hover:text-blue-800 transition-colors flex items-center gap-1">Estudiantes <IconChevronDown size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" /></p>
+                          <p className="text-2xl font-bold text-gray-800 group-hover:text-blue-900 transition-colors">{currentData.length}</p>
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-lg p-4 flex items-center border border-gray-100">
+                        <div className="bg-green-100 p-3 rounded-full mr-3 text-green-700"><IconTrendingUp size={24} /></div>
+                        <div>
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Prom. General</p>
+                          <p className="text-2xl font-bold text-gray-800" style={{color: getColorByValue(classAverages.promedio)}}>{classAverages.promedio?.toFixed(2)}</p>
+                        </div>
+                      </div>
+
+                      <div onClick={() => setIsAlertaModalOpen(true)} className="bg-orange-50 rounded-lg p-4 flex items-center border border-orange-200 cursor-pointer hover:bg-orange-100 hover:border-orange-400 transition-all shadow-sm hover:shadow-md active:scale-95 group" title="Ver estudiantes en Alerta Temprana">
+                        <div className="bg-orange-100 p-3 rounded-full mr-3 text-orange-700 group-hover:bg-orange-600 group-hover:text-white transition-colors"><IconAlertTriangle size={24} /></div>
+                        <div>
+                          <p className="text-xs text-orange-600 font-semibold uppercase group-hover:text-orange-800 transition-colors flex items-center gap-1">Alerta (3.0-3.5) <IconChevronDown size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" /></p>
+                          <p className="text-2xl font-bold text-orange-700 group-hover:text-orange-900 transition-colors">{alertaStudents.length}</p>
+                        </div>
+                      </div>
+
+                      <div onClick={() => setIsReprobadosModalOpen(true)} className="bg-red-50 rounded-lg p-4 flex items-center border border-red-200 cursor-pointer hover:bg-red-100 hover:border-red-400 transition-all shadow-sm hover:shadow-md active:scale-95 group" title="Ver estudiantes Reprobados">
+                        <div className="bg-red-100 p-3 rounded-full mr-3 text-red-700 group-hover:bg-red-600 group-hover:text-white transition-colors"><IconAlertTriangle size={24} /></div>
+                        <div>
+                          <p className="text-xs text-red-600 font-semibold uppercase group-hover:text-red-800 transition-colors flex items-center gap-1">Reprobados (&#60;3.0) <IconChevronDown size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" /></p>
+                          <p className="text-2xl font-bold text-red-700 group-hover:text-red-900 transition-colors">{reprobadosStudents.length}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                    
+                    <div className="lg:col-span-2 flex flex-col gap-6 h-full">
+                      
+                      <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 overflow-hidden shrink-0">
+                        <SectionHeader number="2" title="Balance de Promedios por Criterio" colorClass="bg-blue-700" textClass="text-blue-900" />
+                        
+                        <div className="flex gap-4 mb-2 justify-center text-xs font-medium text-gray-600 flex-wrap">
+                           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-green-500"></span> Superior (≥4.6)</span>
+                           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-blue-500"></span> Alto (≥4.0)</span>
+                           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-yellow-500"></span> Básico (≥3.0)</span>
+                           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-red-500"></span> Bajo (&#60;3.0)</span>
+                        </div>
+
+                        <div className="w-full overflow-x-auto mt-2">
+                          {isMobileView ? (
+                            <svg viewBox={`0 0 600 ${hCHeight + 80}`} className="w-full h-auto min-w-[320px] font-sans">
+                              {[0, 1, 2, 3, 4, 5].map(val => {
+                                const x = 130 + (val / 5.0) * hCWidth;
+                                return (
+                                  <g key={`hgrid-${val}`}>
+                                    <text x={x} y={30} textAnchor="middle" fontSize="12" fill="#6b7280">{val}.0</text>
+                                    <line x1={x} y1={40} x2={x} y2={hCHeight + 40} stroke="#e5e7eb" strokeWidth="1" strokeDasharray={val === 0 ? "" : "4 4"} />
+                                    <text x={x} y={hCHeight + 60} textAnchor="middle" fontSize="12" fill="#6b7280">{val}.0</text>
+                                  </g>
+                                );
+                              })}
+
+                              {chartData.map((p, i) => {
+                                const barH = Math.min(34, (hCHeight/chartData.length)-10); 
+                                return (
+                                  <g key={`hbar-${i}`} className="group cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setCriterionModalData(p.originalItem)} title={`Ver detalle de ${p.label}`}>
+                                    <text x={120} y={p.hy - 2} textAnchor="end" dominantBaseline="middle" fontSize="12" fontWeight="600" fill="#4b5563">{p.label.split(' ')[0]}</text>
+                                    <text x={120} y={p.hy + 12} textAnchor="end" dominantBaseline="middle" fontSize="10" fill="#9ca3af">{p.label.split(' ')[1]}</text>
+                                    <rect x={130} y={p.hy - barH / 2} width={p.barWidth} height={barH} fill={p.color} rx="4" ry="4" className="opacity-90" />
+                                    <text x={p.hx + 12} y={p.hy + 1} textAnchor="start" dominantBaseline="middle" fontSize="14" fontWeight="bold" fill={p.color}>{p.value.toFixed(1)}</text>
+                                  </g>
+                                );
+                              })}
+                            </svg>
+                          ) : (
+                            <svg viewBox={`0 0 800 350`} className="w-full h-auto min-w-[600px] font-sans">
+                              {[0, 1, 2, 3, 4, 5].map(val => {
+                                const y = 70 + cHeight - (val / 5.0) * cHeight;
+                                return (
+                                  <g key={`grid-${val}`}>
+                                    <text x={40} y={y + 4} textAnchor="end" fontSize="12" fill="#6b7280">{val}.0</text>
+                                    <line x1={50} y1={y} x2={750} y2={y} stroke="#e5e7eb" strokeWidth="1" strokeDasharray={val === 0 ? "" : "4 4"} />
+                                  </g>
+                                );
+                              })}
+
+                              {chartData.map((p, i) => {
+                                const barW = Math.min(50, (cWidth/chartData.length)-10);
+                                const barH = cHeight - (p.y - 70);
+                                const cl = p.value >= 4.6 ? 'Superior' : p.value >= 4.0 ? 'Alto' : p.value >= 3.0 ? 'Básico' : 'Bajo';
+                                const bgWidth = cl === 'Superior' ? 60 : (cl === 'Básico' ? 50 : 40);
+                                return (
+                                  <g key={`bar-${i}`} className="group cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setCriterionModalData(p.originalItem)} title={`Ver detalle de ${p.label}`}>
+                                    <rect x={p.x - barW / 2} y={p.y} width={barW} height={barH} fill={p.color} rx="4" ry="4" className="opacity-90" />
+                                    <text x={p.x} y={p.y - 12} textAnchor="middle" fontSize="14" fontWeight="bold" fill={p.color}>{p.value.toFixed(1)}</text>
+                                    <rect x={p.x - bgWidth / 2} y={p.y - 42} width={bgWidth} height={18} rx="9" fill={p.color} className="opacity-90" />
+                                    <text x={p.x} y={p.y - 29} textAnchor="middle" fontSize="10" fontWeight="bold" fill="#ffffff">{cl}</text>
+                                    <text x={p.x} y={310} textAnchor="middle" fontSize="12" fontWeight="600" fill="#4b5563">{p.label.split(' ')[0]}</text>
+                                    <text x={p.x} y={326} textAnchor="middle" fontSize="11" fill="#6b7280">{p.label.split(' ')[1]}</text>
+                                  </g>
+                                );
+                              })}
+                            </svg>
+                          )}
+                        </div>
+                      </section>
+
+                      <section className="bg-[#f8f9ff] rounded-xl shadow-sm border border-indigo-100 overflow-hidden flex flex-col flex-1">
+                        <div className="bg-[#3b38a1] text-white p-3 md:px-5 flex items-center gap-3 shrink-0">
+                           <div className="bg-white text-[#3b38a1] w-6 h-6 rounded-sm flex items-center justify-center font-black text-sm shrink-0">3</div>
+                           <h2 className="text-sm md:text-base font-bold uppercase tracking-wide text-white">Efectividad de Exámenes {gradePrefix !== "11" ? "y Quizzes " : ""}(Cálculo del Promedio Combinado)</h2>
+                        </div>
+                        
+                        <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-indigo-100 p-6 items-stretch flex-1">
+                           
+                           <div className="flex-1 pb-6 md:pb-0 md:pr-6 flex flex-col justify-center">
+                              <h3 className="font-black text-[17px] text-[#2d2876] uppercase leading-tight mb-2">Promedio Positivo {gradePrefix !== "11" ? "Entre Exámenes y Quizzes" : "En Exámenes"}</h3>
+                              <p className="text-sm text-[#4c489d] mb-3">Se combinó Examen Intermedio{gradePrefix !== "11" ? ", Examen Final y Quiz" : " y Examen Final"}.</p>
+                              <p className="text-[13px] font-bold text-[#2d2876]">¿Cuántos estudiantes obtuvieron un promedio ≥ 3.0?</p>
+                           </div>
+                           
+                           <div className="flex-1 py-6 md:py-0 md:px-6 flex flex-col items-center justify-center text-center">
+                              <div className="flex items-center justify-center gap-4 mb-2">
+                                 <IconCertificate size={56} className="text-[#3b38a1]" />
+                                 <span className="text-6xl font-black text-[#1e1a5a]">{examMetrics.countPositive}</span>
+                              </div>
+                              <p className="text-[19px] font-bold text-[#2d2876]">*{examMetrics.countPositive} Estudiantes</p>
+                              <p className="text-sm text-[#514ca5] font-medium">({examMetrics.percentage}% de la clase)</p>
+                           </div>
+
+                           <div className="flex-1 pt-6 md:pt-0 md:pl-6 flex flex-col items-center justify-center text-center gap-3">
+                              <div className="relative w-24 h-24 flex items-center justify-center">
+                                 <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
+                                    <circle cx="18" cy="18" r="16" fill="none" className="stroke-[#dbe0fe]" strokeWidth="4" />
+                                    <circle cx="18" cy="18" r="16" fill="none" className="stroke-[#4f46e5] transition-all duration-1000" strokeWidth="4" strokeDasharray="100" strokeDashoffset={100 - examMetrics.percentage} strokeLinecap="round" />
+                                 </svg>
+                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span className="text-[13px] font-black text-[#1e1a5a] leading-none mb-0.5">{examMetrics.countPositive} / {examMetrics.total}</span>
+                                    <span className="text-xs font-bold text-[#4f46e5]">{examMetrics.percentage}%</span>
+                                 </div>
+                              </div>
+                              <p className="text-xs text-[#514ca5] leading-snug">
+                                 El resto del curso ({examMetrics.negativeCount} estudiantes) depende de las notas base ({gradePrefix === "11" ? "Disciplina, Pruebas Saber" : "Disciplina, Unidades, Cuaderno"}) para aprobar.
+                              </p>
+                           </div>
+                        </div>
+                      </section>
+                    </div>
+
+                    <div className="flex flex-col gap-6 h-full">
+                      <section className="bg-yellow-50 p-6 rounded-xl shadow-sm border border-yellow-200 relative overflow-hidden flex flex-col shrink-0">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none"><IconTrophy size={80} className="text-yellow-800" /></div>
+                        <SectionHeader number="4" title={<><IconTrophy size={20}/> Cuadro de Honor</>} colorClass="bg-yellow-600" textClass="text-yellow-900" />
+                        <div className="overflow-x-auto relative z-10 w-full pb-1">
+                          <table className="w-full text-sm mt-2">
+                            <thead>
+                              <tr className="border-b-2 border-yellow-300">
+                                <th className="text-left p-2 font-bold text-yellow-900">N°</th>
+                                <th className="text-left p-2 font-bold text-yellow-900">ESTUDIANTE</th>
+                                <th className="text-right p-2 font-bold text-yellow-900">PROM</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {topStudents.map((s, i) => {
+                                const medalColors = ['text-yellow-500', 'text-gray-400', 'text-amber-700', 'text-blue-400', 'text-indigo-400'];
+                                return (
+                                <tr key={s.id} onClick={() => selectStudentAndExpand(s.id, s.name)} className="border-b border-yellow-200 last:border-0 hover:bg-yellow-200 cursor-pointer transition-colors group">
+                                  <td className="py-3 px-2 text-yellow-800 font-bold flex items-center gap-1">{i + 1}. <IconMedal size={16} className={medalColors[i] || 'text-transparent'}/></td>
+                                  <td className="py-3 px-2 font-semibold text-yellow-950 leading-tight group-hover:text-yellow-700">{s.name.split(' ').slice(0, 3).join(' ')}</td>
+                                  <td className="py-3 px-2 text-right font-black text-yellow-700">{s.promedio.toFixed(2)}</td>
+                                </tr>
+                              )})}
+                            </tbody>
+                          </table>
+                        </div>
+                      </section>
+
+                      <section className="bg-orange-50 p-6 rounded-xl shadow-sm border border-orange-200 relative overflow-hidden flex flex-col flex-1 min-h-[300px] lg:min-h-0">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><IconAlertTriangle size={80} className="text-orange-900" /></div>
+                        <SectionHeader number="5" title={<><IconAlertTriangle size={20}/> Alerta Temprana</>} colorClass="bg-orange-700" textClass="text-orange-900" />
+                        
+                        <div className="relative mb-3 z-10 shrink-0">
+                          <input 
+                            type="text" 
+                            placeholder="Buscar estudiante en alerta..." 
+                            value={alertaSearch} 
+                            onChange={e => setAlertaSearch(e.target.value)} 
+                            className="w-full pl-9 pr-3 py-2 rounded-lg border border-orange-300 text-sm focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors bg-white/80 backdrop-blur-sm" 
+                          />
+                          <IconSearch size={16} className="absolute left-3 top-2.5 text-orange-500" />
+                        </div>
+
+                        <div className="flex-1 w-full mt-1 bg-white/60 rounded-lg border border-orange-200 overflow-hidden flex flex-col shrink-0">
+                          <div className="overflow-y-auto h-[265px] w-full relative z-10 custom-table-container">
+                            <table className="w-full text-sm">
+                              <thead className="sticky top-0 bg-orange-100 z-20">
+                                <tr className="border-b border-orange-300">
+                                  <th className="text-left p-3 font-bold text-orange-900">ESTUDIANTE</th>
+                                  <th className="text-right p-3 font-bold text-orange-900">PROM</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {filteredAlertaTableStudents.length > 0 ? filteredAlertaTableStudents.map((s, index) => {
+                                  const isReprobado = s.promedio < 3.0;
+                                  return (
+                                  <tr key={s.id} onClick={() => selectStudentAndExpand(s.id, s.name)} className={`border-b ${isReprobado ? 'border-red-100 bg-red-50 hover:bg-red-100' : 'border-orange-100 hover:bg-orange-100'} ${index === filteredAlertaTableStudents.length - 1 ? 'border-0' : ''} cursor-pointer transition-colors group`}>
+                                    <td className={`py-3 px-3 font-semibold ${isReprobado ? 'text-red-900' : 'text-orange-900'} flex items-center gap-2 leading-tight group-hover:text-opacity-80`} title={s.name}>
+                                      <IconAlertTriangle size={14} className={`${isReprobado ? 'text-red-500' : 'text-orange-500'} shrink-0`}/> 
+                                      {s.name.split(' ').slice(0, 3).join(' ')}
+                                    </td>
+                                    <td className={`py-3 px-3 text-right font-black ${isReprobado ? 'text-red-700' : 'text-orange-700'}`}>{s.promedio.toFixed(2)}</td>
+                                  </tr>
+                                )}) : (
+                                  <tr>
+                                    <td colSpan="2" className="py-6 text-center text-orange-800 font-medium">No se encontraron estudiantes.</td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                      <SectionHeader number="6" title={gradePrefix==="11" ? "Enfoque en Pruebas Saber" : "Enfoque en Actividades (Units)"} colorClass="bg-orange-600" textClass="text-orange-900"/>
+                      <div className="flex items-center gap-4 mt-4">
+                        <div className="w-24 h-24 rounded-full border-8 border-orange-400 flex items-center justify-center shrink-0">
+                          <span className="text-xl font-bold text-gray-700">{gradePrefix==="11" ? "49%" : "27%"}</span>
+                        </div>
+                        <p className="text-sm text-gray-600 flex-1">
+                          {gradePrefix==="11" 
+                            ? 'En el grado 11°, las 7 Partes correspondientes al entrenamiento de Pruebas Saber consolidan casi la mitad de la evaluación, exigiendo constancia.'
+                            : 'Las Unidades 0, 1, 2 se basan en actividades del libro. Representan un colchón de apoyo fundamental para los estudiantes.'
+                          } <br/><br/>
+                          <span className="text-xs text-gray-400 uppercase tracking-wide font-bold">Peso total del criterio: {gradePrefix==="11" ? "49%" : "27%"}</span>
+                        </p>
+                      </div>
+                    </section>
+
+                    <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                      <SectionHeader number="7" title="Insights Clave Dinámicos" colorClass="bg-indigo-700" textClass="text-indigo-900"/>
+                      <ul className="space-y-4 text-sm mt-4">
+                        <li className="flex gap-3 items-start"><IconCheckCircle size={18} className="text-green-500 mt-0.5 shrink-0" /> <p><strong>RENDIMIENTO PROMEDIO:</strong> El grupo mantiene un promedio de {classAverages.promedio?.toFixed(2)} sobre 5.0.</p></li>
+                        <li className="flex gap-3 items-start"><IconAlertTriangle size={18} className="text-red-500 mt-0.5 shrink-0" /> <p><strong>ZONAS CRÍTICAS:</strong> {riskStudents.length} estudiantes requieren algún tipo de plan de mejora.</p></li>
+                        <li className="flex gap-3 items-start"><IconTarget size={18} className="text-blue-500 mt-0.5 shrink-0" /> <p><strong>MAYOR FORTALEZA:</strong> La Disciplina suele ser el ancla positiva del grupo ({classAverages.disciplina?.toFixed(2)}).</p></li>
+                      </ul>
+                    </section>
+                  </div>
+
+                  <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+                      
+                      <div className="flex flex-col h-full w-full">
+                        <SectionHeader number="8" title="Análisis de Deficiencias" colorClass="bg-rose-700" textClass="text-rose-900"/>
+                        
+                        <div className="relative mb-4 shrink-0">
+                          <input 
+                            type="text" 
+                            placeholder="Buscar estudiante con deficiencias..." 
+                            value={deficiencySearch} 
+                            onChange={e => setDeficiencySearch(e.target.value)} 
+                            className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-rose-500 focus:border-rose-500 outline-none transition-colors bg-gray-50" 
+                          />
+                          <IconSearch size={16} className="absolute left-3 top-2.5 text-gray-400" />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-1 overflow-y-auto pr-2 pb-2 custom-table-container content-start h-[340px]">
+                          {filteredRiskStudents.length > 0 ? filteredRiskStudents.map(student => {
+                             const fallas = config.items.filter(item => getStudentValue(student, item) < 3.0);
+                             const isReprobado = student.promedio < 3.0;
+                             return (
+                               <div key={student.id} className={`p-4 rounded-lg border text-sm hover:shadow-md cursor-pointer transition-all ${isReprobado ? 'bg-red-50 border-red-200 hover:bg-red-100' : 'bg-orange-50 border-orange-200 hover:bg-orange-100'}`} onClick={()=>selectStudentAndExpand(student.id, student.name)}>
+                                 <p className={`font-bold border-b pb-2 mb-3 flex items-center gap-1 line-clamp-1 ${isReprobado ? 'text-red-900 border-red-200' : 'text-orange-900 border-orange-200'}`} title={student.name}><IconAlertTriangle size={16}/> {student.name}</p>
+                                 <ul className={`list-disc pl-5 text-xs space-y-1.5 ${isReprobado ? 'text-red-800' : 'text-orange-800'}`}>
+                                   {fallas.length > 0 ? fallas.slice(0,3).map(f => (
+                                     <li key={f.id}>Bajo en {f.label.split(' ')[0]} ({getStudentValue(student, f).toFixed(1)})</li>
+                                   )) : <li>Rendimiento general en límite inferior.</li>}
+                                 </ul>
+                                 <p className={`text-xs font-black mt-3 text-right ${isReprobado ? 'text-red-600' : 'text-orange-600'}`}>PROM: {student.promedio.toFixed(2)}</p>
+                               </div>
+                             );
+                          }) : (
+                            <div className="col-span-1 sm:col-span-2 flex flex-col items-center justify-center p-8 text-gray-500 h-full">
+                              <IconCheckCircle size={48} className="text-green-500 opacity-50 mb-3" />
+                              <p>No se detectaron estudiantes con esos criterios.</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="bg-emerald-50 p-6 rounded-xl border border-emerald-100 flex flex-col h-full w-full">
+                        <SectionHeader number="9" title="Recomendaciones Estratégicas" colorClass="bg-emerald-700" textClass="text-emerald-900"/>
+                        <div className="flex flex-col justify-center gap-5 mt-2 pr-2 h-[340px] overflow-y-auto custom-table-container">
+                          <div className="flex gap-3 bg-white p-4 rounded-lg shadow-sm border border-emerald-100 transition-all hover:shadow-md shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-800 font-black shrink-0">1</div>
+                            <p className="text-sm text-emerald-900"><strong>PREPARACIÓN PARA EXÁMENES:</strong> Es el factor general de mayor impacto negativo. Aplicar talleres de repaso y simulacros previos a las fechas de evaluación.</p>
+                          </div>
+                          <div className="flex gap-3 bg-white p-4 rounded-lg shadow-sm border border-emerald-100 transition-all hover:shadow-md shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-800 font-black shrink-0">2</div>
+                            <p className="text-sm text-emerald-900"><strong>SEGUIMIENTO DE ACTIVIDADES:</strong> Monitorear estrictamente la entrega de las tareas prácticas que suman el {gradePrefix==="11"?'49%':'41%'} restante de la nota.</p>
+                          </div>
+                          <div className="flex gap-3 bg-white p-4 rounded-lg shadow-sm border border-emerald-100 transition-all hover:shadow-md shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-800 font-black shrink-0">3</div>
+                            <p className="text-sm text-emerald-900"><strong>PARTICIPACIÓN Y SEGUIMIENTO CONTINUO:</strong> Implementar tutorías cortas grupales o emparejamiento con los {topStudents.length} estudiantes del Cuadro de Honor para fortalecer áreas críticas y mantener el promedio global ({classAverages.promedio?.toFixed(2)}).</p>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </section>
+
+                  <section className="bg-gradient-to-br from-indigo-50 to-blue-50 p-6 rounded-xl shadow-md border-t-4 border-blue-600">
+                    <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-4">
+                      <div>
+                        <SectionHeader number="10" title={<><IconBrainCircuit size={20}/> Análisis Estratégico del Grupo con IA</>} colorClass="bg-blue-700" textClass="text-blue-900" />
+                        <p className="text-sm text-blue-800 mt-1 ml-8">Diagnóstico de toda la clase y sugerencias metodológicas impulsadas por Gemini.</p>
+                      </div>
+                      <button 
+                        onClick={() => callGeminiAPI(`Eres un coordinador académico de ${selectedSubject.toLowerCase()}. Analiza los promedios del grado ${selectedGrade}. Promedio General: ${classAverages.promedio.toFixed(2)}. Escribe un Diagnóstico General del Grupo identificando su patrón. Sé práctico y directo, max 150 palabras.`, 'global')} 
+                        disabled={loadingIA.global} 
+                        className={`flex items-center gap-2 px-5 py-3 rounded-lg font-bold text-white shadow-lg transition-all ${loadingIA.global ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-700 hover:bg-blue-800 hover:shadow-xl active:scale-95'}`}
+                      >
+                        {loadingIA.global ? 'Procesando...' : '✨ Analizar Clase'}
+                      </button>
+                    </div>
+                    {aiResults.error && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mt-4 rounded text-sm font-medium">{aiResults.error}</div>}
+                    {aiResults.global && (
+                      <div className="bg-white rounded-lg p-6 border border-blue-200 shadow-sm animate-opacity mt-4">
+                        <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-3">Diagnóstico y Recomendaciones (Gemini IA)</p>
+                        <div className="text-gray-800 text-sm space-y-3 leading-relaxed whitespace-pre-wrap font-medium">{aiResults.global}</div>
+                      </div>
+                    )}
+                  </section>
+
+                </div>
+              </div> 
+
+              {isChangeGradeModalOpen && (
+                <div 
+                  className="fixed inset-0 z-[2000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 animate-opacity" 
+                  onClick={() => setIsChangeGradeModalOpen(false)}
+                >
+                  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border-t-4 border-red-700 animate-slide-up-fade" onClick={e => e.stopPropagation()} style={{animationDelay: '0s', opacity: 1}}>
+                    <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                      <h3 className="font-bold text-gray-800 text-base flex items-center gap-2">
+                        <IconUsers size={18} className="text-red-600"/> Cambiar de Grado
+                      </h3>
+                      <button onClick={() => setIsChangeGradeModalOpen(false)} className="text-gray-400 hover:text-red-600 transition-colors bg-white rounded-full p-1 border border-gray-200">
+                        <IconX size={16} />
+                      </button>
+                    </div>
+                    <div className="p-5 flex gap-4">
+                      {Object.keys(ESTRUCTURA_GRADOS).map(nivel => (
+                          <div key={nivel} className="flex-1">
+                              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 border-b border-gray-100 pb-1">{nivel}</h4>
+                              <div className="grid grid-cols-2 gap-1.5">
+                                  {ESTRUCTURA_GRADOS[nivel].map(grado => (
+                                      <div key={grado} className="col-span-2 flex gap-1.5 mb-1.5">
+                                          {[1, 2].map(curso => {
+                                              const curr = `${grado}-${curso}`;
+                                              const isActive = selectedGrade === curr;
+                                              return (
+                                                  <button 
+                                                      key={curr} 
+                                                      onClick={() => handleClassroomClick(curr)} 
+                                                      className={`flex-1 text-xs py-1.5 rounded font-bold transition-colors border ${isActive ? 'bg-red-700 text-white border-red-800 shadow-inner' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-300'}`}
+                                                  >
+                                                      {curr}
+                                                  </button>
+                                              );
+                                          })}
+                                      </div>
+                                  ))}
+                              </div>
+                          </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isStudentModalOpen && selectedStudent && (
+                <div 
+                  className="fixed inset-0 z-[1000] bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 md:p-8 animate-opacity overflow-y-auto" 
+                  onClick={handleCloseModal}
+                >
+                  <div 
+                    className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col relative animate-slide-up-fade my-auto" 
+                    onClick={(e) => e.stopPropagation()}
+                    style={{animationDelay: '0s', opacity: 1}}
+                  >
+                    
+                    <div className="bg-red-800 text-white p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 relative shrink-0 rounded-t-2xl">
+                      <button 
+                        onClick={handleCloseModal} 
+                        className="absolute top-6 right-6 text-red-200 hover:text-white transition-colors bg-red-900/50 hover:bg-red-900 rounded-full p-2"
+                        title="Cerrar ventana"
+                      >
+                        <IconX size={24} />
+                      </button>
+                      <div className="flex items-center gap-6">
+                        <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center text-red-800 shadow-lg"><IconUserCircle size={40} /></div>
+                        <div>
+                          <h2 className="text-white text-xl md:text-3xl font-black uppercase tracking-tight pr-12">{selectedStudent.name}</h2>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                             <span className="bg-red-900/50 text-red-100 text-[10px] font-bold px-3 py-1 rounded-full uppercase">Grado {selectedGrade}</span>
+                             <span className="bg-white/20 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest italic flex items-center gap-1">
+                               <IconTrophy size={10}/> Rank: #{[...currentData].sort((a,b)=>b.promedio-a.promedio).findIndex(s => s.id === selectedStudent.id) + 1} de {currentData.length}
+                             </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-white text-red-800 rounded-2xl p-4 text-center min-w-[120px] shadow-2xl mr-12 md:mr-16">
+                        <p className="text-[10px] font-black uppercase">Promedio Final</p>
+                        <p className="text-4xl font-black leading-none" style={{color: getColorByValue(selectedStudent.promedio)}}>{selectedStudent.promedio.toFixed(2)}</p>
+                      </div>
+                    </div>
+
+                    <div className="p-6 md:p-8 bg-slate-50 rounded-b-2xl">
+                      <div className="flex flex-col gap-8">
+                        
+                        {(() => {
+                          const prom = selectedStudent.promedio;
+                          let statusBg, statusBorder, statusText, statusTitle, statusDesc, StatusIcon, level;
+                          if (prom >= 4.6) { level = 4; statusBg = 'bg-green-50'; statusBorder = 'border-green-200'; statusText = 'text-green-800'; statusTitle = 'Indicador Superior'; StatusIcon = IconCheckCircle; } 
+                          else if (prom >= 4.0) { level = 3; statusBg = 'bg-blue-50'; statusBorder = 'border-blue-200'; statusText = 'text-blue-800'; statusTitle = 'Indicador Alto'; StatusIcon = IconCheckCircle; } 
+                          else if (prom >= 3.0) { level = 2; statusBg = 'bg-orange-50'; statusBorder = 'border-orange-200'; statusText = 'text-orange-800'; statusTitle = 'Indicador Básico'; StatusIcon = IconAlertTriangle; } 
+                          else { level = 1; statusBg = 'bg-red-50'; statusBorder = 'border-red-200'; statusText = 'text-red-800'; statusTitle = 'Indicador Bajo'; StatusIcon = IconAlertTriangle; }
+                          statusDesc = INDICADORES[gradePrefix][level];
+                          return (
+                            <div className={`p-5 md:p-6 rounded-2xl border shadow-sm flex items-center gap-5 ${statusBg} ${statusBorder}`}>
+                              <StatusIcon className={`${statusText} shrink-0`} size={36} />
+                              <div>
+                                <h4 className={`font-black uppercase tracking-tight text-lg ${statusText}`}>{statusTitle}</h4>
+                                <p className="text-sm mt-1 text-gray-700 font-medium leading-relaxed">{statusDesc}</p>
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                          
+                          <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm h-full">
+                            <h4 className="font-bold text-gray-700 mb-6 flex items-center gap-2"><IconBarChart2 size={18}/> Desglose de Notas</h4>
+                            <div className="space-y-5">
+                              {config.items.map((item, idx) => {
+                                const val = getStudentValue(selectedStudent, item);
+                                const avg = getClassAverageValue(item);
+                                return (
+                                  <div key={idx} className="relative">
+                                    <div className="flex mb-1.5 items-center justify-between">
+                                      <span className="text-xs font-bold inline-block text-gray-600 uppercase tracking-wide">{item.label}</span>
+                                      <span className={`text-sm font-black inline-block`} style={{ color: getColorByValue(val) }}>
+                                        {val.toFixed(1)} <span className="text-gray-400 font-bold text-xs">/ 5.0</span>
+                                      </span>
+                                    </div>
+                                    <div className="overflow-hidden h-2.5 mb-1.5 text-xs flex rounded-full bg-gray-100">
+                                      <div style={{ width: `${(val / 5) * 100}%`, backgroundColor: getColorByValue(val) }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-500 rounded-full"></div>
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 font-medium flex justify-between">
+                                      <span>Promedio del grupo</span>
+                                      <span>{avg.toFixed(2)}</span>
+                                    </p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden h-full flex flex-col">
+                            <div className="bg-gray-50 p-5 border-b border-gray-200">
+                                <h4 className="font-bold text-gray-700 text-sm flex items-center gap-2">
+                                  <IconTrendingUp size={18} className="text-blue-500" /> Comparativa Numérica Detallada
+                                </h4>
+                            </div>
+                            <div className="overflow-x-auto p-2 flex-1">
+                              <table className="w-full text-xs text-left bg-white h-full">
+                                <thead className="bg-white text-gray-500 border-b border-gray-100">
+                                  <tr>
+                                    <th className="py-3 px-4 font-semibold uppercase tracking-wider">Criterio</th>
+                                    <th className="py-3 px-4 font-semibold text-center uppercase tracking-wider">Ind.</th>
+                                    <th className="py-3 px-4 font-semibold text-center uppercase tracking-wider">Curso</th>
+                                    <th className="py-3 px-4 font-semibold text-center uppercase tracking-wider">Brecha</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-50">
+                                  {config.items.map((item, idx) => {
+                                    const val = getStudentValue(selectedStudent, item);
+                                    const avg = getClassAverageValue(item);
+                                    const diff = (val - avg).toFixed(1);
+                                    const isPositive = diff > 0;
+                                    const isNeutral = diff == 0;
+                                    return (
+                                      <tr key={idx} className="hover:bg-blue-50/50 transition-colors">
+                                        <td className="py-3 px-4 font-bold text-gray-700 uppercase tracking-tighter">{item.label.split(' ')[0]}</td>
+                                        <td className="py-3 px-4 text-center font-black text-sm" style={{ color: getColorByValue(val) }}>{val.toFixed(1)}</td>
+                                        <td className="py-3 px-4 text-center font-bold text-gray-400 text-sm">{avg.toFixed(1)}</td>
+                                        <td className="py-3 px-4 text-center font-bold">
+                                          <span className={`px-2.5 py-1 rounded-full text-[11px] ${isPositive ? 'bg-green-100 text-green-700 border border-green-200' : isNeutral ? 'bg-gray-100 text-gray-500 border border-gray-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
+                                            {isPositive ? '+' : ''}{diff}
+                                          </span>
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+
+                        </div>
+
+                        <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-200 shadow-sm">
+                          <h4 className="font-bold text-gray-700 mb-6 flex items-center gap-2 text-lg"><IconTarget size={20} className="text-indigo-500"/> Huella de Rendimiento Radial</h4>
+                          
+                          <div className="flex gap-6 mb-8 justify-center text-sm font-medium">
+                            <span className="flex items-center gap-2"><span className="w-4 h-4 bg-blue-600/30 border-2 border-blue-600 rounded"></span> {selectedStudent.name}</span>
+                            <span className="flex items-center gap-2"><span className="w-4 h-4 bg-gray-200 border-2 border-gray-400 rounded border-dashed"></span> Promedio del Grupo</span>
+                          </div>
+
+                          <div className="w-full max-w-[400px] mx-auto aspect-square relative flex items-center justify-center mb-8">
+                             {(() => {
+                                const rSize = 400, rCx = 200, rCy = 200, rRadius = 130, rMaxV = 5.0;
+                                const rLabels = config.items.map(item => item.label);
+                                const rStudentVals = config.items.map(item => getStudentValue(selectedStudent, item));
+                                const rAvgVals = config.items.map(item => getClassAverageValue(item));
+                                const getRPoint = (val, i, total) => {
+                                    const angle = (Math.PI * 2 * i / total) - (Math.PI / 2);
+                                    const r = (val / rMaxV) * rRadius;
+                                    return { x: rCx + r * Math.cos(angle), y: rCy + r * Math.sin(angle), angle: angle, val: val.toFixed(1) };
+                                };
+                                const createPolygon = (pts) => `M ${pts.map(p => `${p.x},${p.y}`).join(' L ')} Z`;
+                                const rStudentPoints = rStudentVals.map((v, i) => getRPoint(v, i, rLabels.length));
+                                const rAvgPoints = rAvgVals.map((v, i) => getRPoint(v, i, rLabels.length));
+                                return (
+                                    <svg viewBox="0 0 400 400" className="w-full h-full overflow-visible">
+                                        {[1, 2, 3, 4, 5].map(level => (
+                                            <g key={`grid-ui-${level}`}>
+                                                <path d={createPolygon(rLabels.map((_, i) => getRPoint(level, i, rLabels.length)))} fill="none" stroke="#e5e7eb" strokeWidth="1" />
+                                                <text x={rCx} y={rCy - ((level/rMaxV) * rRadius) - 4} fontSize="9" fill="#9ca3af" textAnchor="end">{level}.0</text>
+                                            </g>
+                                        ))}
+                                        {rLabels.map((lbl, i) => {
+                                            const endPt = getRPoint(5, i, rLabels.length);
+                                            return (
+                                                <g key={`axis-ui-${i}`}>
+                                                    <line x1={rCx} y1={rCy} x2={endPt.x} y2={endPt.y} stroke="#e5e7eb" strokeWidth="1.5" />
+                                                    <text x={rCx + (rRadius+25)*Math.cos(endPt.angle)} y={rCy + (rRadius+25)*Math.sin(endPt.angle) + 4} fontSize="10" fill="#4b5563" fontWeight="bold" textAnchor="middle">{lbl.split(' ')[0]}</text>
+                                                </g>
+                                            );
+                                        })}
+                                        <path d={createPolygon(rAvgPoints)} fill="rgba(156, 163, 175, 0.15)" stroke="#9ca3af" strokeWidth="2" strokeDasharray="4 4" />
+                                        <path d={createPolygon(rStudentPoints)} fill="rgba(37, 99, 235, 0.25)" stroke="#2563eb" strokeWidth="2" />
+                                        {rStudentPoints.map((p, i) => <circle key={`sp-ui-${i}`} cx={p.x} cy={p.y} r="4" fill="#2563eb" stroke="#fff" strokeWidth="1"/>)}
+                                        {rAvgPoints.map((p, i) => <circle key={`ap-ui-${i}`} cx={p.x} cy={p.y} r="3" fill="#fff" stroke="#9ca3af" strokeWidth="1"/>)}
+                                    </svg>
+                                );
+                             })()}
+                          </div>
+                          
+                          {/* LECTURA DE DATOS RADIAL EN LA UI */}
+                          {(() => {
+                              const criteria = config.items.map(item => ({
+                                  name: item.label.split(' ')[0],
+                                  val: getStudentValue(selectedStudent, item),
+                                  avg: getClassAverageValue(item)
+                              })).sort((a, b) => b.val - a.val);
+                              const strongest = criteria[0];
+                              const weakest = criteria[criteria.length - 1];
+                              const diffStrong = (strongest.val - strongest.avg).toFixed(1);
+                              const diffWeak = (weakest.val - weakest.avg).toFixed(1);
+                              const strongText = diffStrong >= 0 ? `(+${diffStrong} respecto al promedio grupal)` : `(${diffStrong} respecto al promedio grupal)`;
+                              const weakText = diffWeak >= 0 ? `(+${diffWeak} respecto al promedio grupal)` : `(${diffWeak} respecto al promedio grupal)`;
+
+                              return (
+                                  <div className="bg-gray-50 p-5 border border-gray-200 rounded-xl">
+                                      <h4 className="font-bold text-gray-800 uppercase text-[12px] mb-3 tracking-wider border-b border-gray-200 pb-2">Interpretación de Datos Radial</h4>
+                                      <div className="text-sm text-gray-700 leading-relaxed space-y-3 font-medium">
+                                          <p>El gráfico radial describe numéricamente la distribución de las calificaciones de <strong>{selectedStudent.name}</strong>. El valor máximo en su rendimiento corresponde a <strong className="text-blue-700">{strongest.name}</strong> con una nota de <strong>{strongest.val.toFixed(1)}</strong> <span className="text-gray-500 text-xs">{strongText}</span>. En el extremo opuesto, el valor mínimo se registra en <strong className="text-red-700">{weakest.name}</strong> con una nota de <strong>{weakest.val.toFixed(1)}</strong> <span className="text-gray-500 text-xs">{weakText}</span>.</p>
+                                          <p className="border-l-4 border-blue-500 pl-3 bg-blue-50/50 py-2 rounded-r-md"><strong>Análisis general:</strong> Con un promedio final de {selectedStudent.promedio.toFixed(2)}, los datos indican un desempeño {selectedStudent.promedio >= 4.0 ? 'Alto/Superior. Las variables analizadas superan la media del curso en su mayoría, evidenciando consistencia en los criterios de evaluación.' : selectedStudent.promedio >= 3.0 ? 'Básico. El estudiante cumple con los requisitos de aprobación, pero se identifica una desviación negativa importante en sus métricas más bajas que requiere nivelación.' : 'Bajo. Las métricas graficadas presentan una contracción generalizada respecto al promedio del grupo, confirmando deficiencias en múltiples criterios de evaluación.'}</p>
+                                      </div>
+                                  </div>
+                              );
+                          })()}
+                        </div>
+
+                        <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-200 shadow-sm flex flex-col justify-center items-center text-center">
+                            <IconBrainCircuit size={48} className="text-red-700 mb-4" />
+                            <h4 className="font-bold text-gray-800 text-xl mb-2">Herramientas y Acciones</h4>
+                            <p className="text-sm text-gray-500 mb-6 max-w-md">Accede al reporte oficial generado por la IA, envía retroalimentación a la familia o consulta el observador.</p>
+                            
+                            <div className="flex flex-wrap justify-center gap-4 w-full">
+                                <button 
+                                    onClick={() => setIsPdfPasswordModalOpen(true)} 
+                                    disabled={loadingPDF}
+                                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all ${loadingPDF ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-700 hover:bg-red-800 hover:shadow-xl hover:-translate-y-1'}`}
+                                >
+                                    <IconPrinter size={20} />
+                                    {loadingPDF ? 'Generando PDF...' : 'Generar PDF Oficial'}
+                                </button>
+                                <button className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-gray-700 bg-white border border-gray-300 shadow-sm hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 hover:shadow-md transition-all">
+                                    <IconMail size={20} className="text-blue-500"/> Correo a Padres
+                                </button>
+                                <button className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-gray-700 bg-white border border-gray-300 shadow-sm hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 hover:shadow-md transition-all">
+                                    <IconClipboard size={20} className="text-emerald-500"/> Observador
+                                </button>
+                            </div>
+                            
+                            {aiResults.error && <p className="text-red-500 mt-4 text-sm font-bold">{aiResults.error}</p>}
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Renderizar Plantilla de Impresión de Fondo */}
+              {renderPrintTemplate()}
+
+              {/* Modal de Contraseña para PDF */}
+              {isPdfPasswordModalOpen && (
+                <div className="fixed inset-0 z-[3000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-opacity" onClick={(e) => e.stopPropagation()}>
+                  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden border-t-4 border-red-700 animate-slide-up-fade" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white text-gray-800 p-5 flex justify-between items-center border-b border-gray-100">
+                      <h3 className="font-bold flex items-center gap-2"><IconLock size={20} className="text-red-600" /> Seguridad de Reporte</h3>
+                      <button onClick={() => {setIsPdfPasswordModalOpen(false); setPdfPasswordError(false); setPdfPasswordInput('');}} className="text-gray-400 hover:text-red-600 transition-colors"><IconX size={20} /></button>
+                    </div>
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        if (pdfPasswordInput === 'Lidelca') {
+                            setIsPdfPasswordModalOpen(false);
+                            setPdfPasswordInput('');
+                            setPdfPasswordError(false);
+                            handlePrintPDF();
+                        } else {
+                            setPdfPasswordError(true);
+                        }
+                    }} className="p-6">
+                      <p className="text-gray-600 text-sm mb-4">Ingrese la clave de administrador para generar el PDF oficial.</p>
+                      <div className="mb-4">
+                        <input 
+                          type="password" 
+                          placeholder="Contraseña" 
+                          className={`w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-4 transition-all ${pdfPasswordError ? 'border-red-500 focus:ring-red-100' : 'border-gray-200 focus:border-red-500 focus:ring-red-100'}`}
+                          value={pdfPasswordInput}
+                          onChange={(e) => setPdfPasswordInput(e.target.value)}
+                          autoFocus
+                        />
+                        {pdfPasswordError && <p className="text-red-500 text-xs mt-2 font-bold animate-opacity">Contraseña incorrecta. Intente nuevamente.</p>}
+                      </div>
+                      <div className="flex gap-3 justify-end mt-6">
+                        <button type="button" onClick={() => {setIsPdfPasswordModalOpen(false); setPdfPasswordError(false); setPdfPasswordInput('');}} className="px-4 py-2 rounded-lg font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors text-sm">Cancelar</button>
+                        <button type="submit" className="px-4 py-2 rounded-lg font-bold text-white bg-red-700 hover:bg-red-800 shadow-md transition-colors text-sm">Validar y Generar</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {/* Modales Genéricos de Datos Rápidos (Con Buscador) */}
+              {(isListModalOpen || isReprobadosModalOpen || isAlertaModalOpen || criterionModalData) && (
+                  <div className="fixed inset-0 z-[1500] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-opacity" onClick={() => { setIsListModalOpen(false); setIsReprobadosModalOpen(false); setIsAlertaModalOpen(false); setCriterionModalData(null); setModalSearchTerm(''); }}>
+                      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[85vh] overflow-hidden" onClick={e=>e.stopPropagation()}>
+                          
+                          <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                              <h3 className="font-black text-lg text-gray-800 uppercase tracking-tight flex items-center gap-2 border-l-4 border-red-600 pl-3">
+                                  {genericModalTitle}
+                                  <span className="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full ml-1">{genericModalList.length}</span>
+                              </h3>
+                              <button className="text-gray-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-full transition-colors" onClick={() => { setIsListModalOpen(false); setIsReprobadosModalOpen(false); setIsAlertaModalOpen(false); setCriterionModalData(null); setModalSearchTerm(''); }}><IconX size={20}/></button>
+                          </div>
+                          
+                          <div className="p-4 border-b border-gray-100 bg-white shrink-0">
+                              <div className="relative">
+                                  <input 
+                                    type="text" 
+                                    placeholder="Buscar estudiante..." 
+                                    value={modalSearchTerm} 
+                                    onChange={e => setModalSearchTerm(e.target.value)} 
+                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-red-500 focus:border-red-500 outline-none transition-shadow shadow-sm bg-gray-50" 
+                                  />
+                                  <IconSearch size={18} className="absolute left-3.5 top-3 text-gray-400" />
+                              </div>
+                          </div>
+
+                          <div className="flex justify-between text-xs font-black text-gray-500 uppercase bg-gray-100/80 px-6 py-2.5 shrink-0 border-b border-gray-200">
+                              <span>Nombres de Estudiantes</span>
+                              <span>Nota</span>
+                          </div>
+
+                          <div className="overflow-y-auto flex-1 p-2 custom-table-container">
+                             {filteredGenericList.length > 0 ? filteredGenericList.map(s => {
+                                 const val = genericValExtractor(s);
+                                 return (
+                                     <div key={s.id} className="px-4 py-3 mx-2 my-1 rounded-lg border border-transparent hover:border-gray-200 flex justify-between items-center hover:bg-gray-50 cursor-pointer transition-all group" onClick={() => selectStudentAndExpand(s.id, s.name)}>
+                                         <span className="font-semibold text-gray-700 text-sm group-hover:text-red-800 transition-colors">{s.name}</span>
+                                         <span className="font-black text-sm px-2.5 py-1 rounded-md" style={{backgroundColor: `${getColorByValue(val)}20`, color: getColorByValue(val)}}>
+                                            {val.toFixed(2)}
+                                         </span>
+                                     </div>
+                                 )
+                             }) : (
+                                 <div className="py-12 text-center text-gray-400 flex flex-col items-center">
+                                     <IconSearch size={40} className="mb-3 opacity-20" />
+                                     <p className="text-sm font-medium">No se encontraron estudiantes.</p>
+                                 </div>
+                             )}
+                          </div>
+
+                      </div>
+                  </div>
+              )}
+
+            </div>
+            {curtainJSX}
+            {studentTransitionJSX}
+            </>
+          );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
