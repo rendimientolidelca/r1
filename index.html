@@ -431,6 +431,15 @@
           return student[item.id] || 0;
         };
 
+        const subjectsConfig = [
+            { id: 'Inglés', active: true, icon: <IconLanguages size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
+            { id: 'Matemáticas', active: false, icon: <IconCalculator size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
+            { id: 'Lenguaje', active: false, icon: <IconBookOpen size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
+            { id: 'C. Naturales', active: false, icon: <IconFlask size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
+            { id: 'C. Sociales', active: false, icon: <IconGlobe size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
+            { id: 'Física', active: false, icon: <IconAtom size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
+        ];
+
         const App = () => {
           const [currentView, setCurrentView] = useState('login'); 
           const [selectedSubject, setSelectedSubject] = useState('Inglés');
@@ -742,13 +751,37 @@ Sé muy profesional, constructivo y directo.`;
           };
 
           const handleClassroomClick = (classroom) => {
-            setSelectedGrade(classroom);
             const baseG = classroom.split('-')[0];
             setIsChangeGradeModalOpen(false); 
-            if (['9', '10', '11'].includes(baseG)) {
-                setCurrentView('subjects'); 
+            
+            if (currentView === 'dashboard') {
+                const currentSubjObj = subjectsConfig.find(s => s.id === selectedSubject);
+                setTransitionSubject(currentSubjObj);
+                setTransitionStatus('enter');
+                
+                setTimeout(() => {
+                    setSelectedGrade(classroom);
+                    if (['9', '10', '11'].includes(baseG) && currentSubjObj && currentSubjObj.active) {
+                        setCurrentView('dashboard');
+                    } else {
+                        setCurrentView('coming_soon_subject');
+                    }
+                    
+                    setTimeout(() => {
+                        setTransitionStatus('leave');
+                        setTimeout(() => {
+                            setTransitionStatus('idle');
+                            setTransitionSubject(null);
+                        }, 800);
+                    }, 700);
+                }, 800);
             } else {
-                setCurrentView('coming_soon');
+                setSelectedGrade(classroom);
+                if (['9', '10', '11'].includes(baseG)) {
+                    setCurrentView('subjects'); 
+                } else {
+                    setCurrentView('coming_soon');
+                }
             }
           };
 
@@ -1026,16 +1059,6 @@ Sé muy profesional, constructivo y directo.`;
                 </>
             );
           }
-
-          const subjectsConfig = [
-              { id: 'Inglés', active: true, icon: <IconLanguages size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
-              { id: 'Matemáticas', active: false, icon: <IconCalculator size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
-              { id: 'Lenguaje', active: false, icon: <IconBookOpen size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
-              { id: 'C. Naturales', active: false, icon: <IconFlask size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
-              { id: 'C. Sociales', active: false, icon: <IconGlobe size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
-              { id: 'Física', active: false, icon: <IconAtom size={24} />, bg: 'bg-red-50', border: 'border-red-100', hover: 'hover:border-red-400 hover:shadow-red-200', themeColor: 'bg-red-600' },
-          ];
-
           if (currentView === 'subjects') {
               const filteredSubjects = subjectsConfig.filter(s => s.id.toLowerCase().includes(subjectSearch.toLowerCase()));
 
