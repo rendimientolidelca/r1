@@ -136,11 +136,9 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between relative">
 
-  <!-- CANVAS DE FONDO FIJO COMPLETO (Garantiza total inmunidad contra bloqueos táctiles en pantallas móviles) -->
+  <!-- CANVAS DE FONDO FIJO COMPLETO -->
   <div class="fixed inset-0 pointer-events-none z-0" style="background: radial-gradient(circle at center, #111827 0%, #0B0F19 100%);">
-    <!-- Efecto Scanline seguro -->
     <div class="scanline absolute inset-0 opacity-20"></div>
-    <!-- Partículas e Iluminación ambiental -->
     <div class="absolute inset-0 overflow-hidden opacity-10">
       <div class="absolute top-[10%] left-[5%] w-72 h-72 bg-crimson rounded-full mix-blend-screen filter blur-[120px] animate-pulse"></div>
       <div class="absolute bottom-[10%] right-[5%] w-96 h-96 bg-gray-500 rounded-full mix-blend-screen filter blur-[150px] animate-pulse"></div>
@@ -151,7 +149,6 @@
   <header class="w-full border-b border-gray-800 bg-cyberdark py-4 px-6 sticky top-0 z-40 transition-all shadow-lg">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
       <div class="flex items-center gap-3 cursor-pointer" onclick="goHome()">
-        <!-- School Crest Image Container with failsafe SVG fallback -->
         <div class="w-14 h-14 bg-gray-950 rounded-xl overflow-hidden flex items-center justify-center border border-gray-800 shadow-md p-1">
           <img id="school-crest-img" src="https://i.postimg.cc/302LdLXj/image.png" referrerpolicy="no-referrer" alt="Escudo Liceo del Caribe" class="w-full h-full object-contain" onerror="handleCrestError(this)">
         </div>
@@ -163,7 +160,6 @@
 
       <!-- Live Scoreboard -->
       <div id="live-scoreboard" class="hidden flex items-center gap-6 bg-gray-900 border border-gray-800 rounded-xl py-2 px-5">
-        <!-- Turn indicator display in header -->
         <div class="text-left hidden sm:block">
           <div class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Participante</div>
           <div id="header-student-name" class="text-sm font-semibold text-white truncate max-w-[150px]">Nombre</div>
@@ -179,7 +175,6 @@
           <div id="combo-badge" class="tech-font text-lg font-bold text-gray-400 transition-all duration-300">x1</div>
         </div>
         <div class="h-8 w-[1px] bg-gray-800"></div>
-        <!-- Sound Toggle -->
         <button id="sound-toggle" onclick="toggleAudio()" class="text-gray-400 hover:text-white transition-colors p-1" title="Alternar Sonido">
           <svg id="sound-icon-on" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
           <svg id="sound-icon-off" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zm10.121-6.121l4.242 4.242m0-4.242l-4.242 4.242"/></svg>
@@ -197,7 +192,7 @@
     </div>
   </div>
 
-  <!-- MAIN WRAPPER (Sólido y elevado con stacking context propio en z-30) -->
+  <!-- MAIN WRAPPER -->
   <main class="flex-grow w-full max-w-7xl mx-auto px-4 py-8 flex items-center justify-center relative z-30">
     
     <!-- STEP 1: REGISTRO DE NOMBRE / GRUPOS -->
@@ -212,7 +207,6 @@
         <p class="text-xs text-gray-400">Ingresa tus datos para registrar tus progresos en las Temáticas del Segundo Periodo.</p>
       </div>
 
-      <!-- Segment controller (Individual vs Group) -->
       <div class="grid grid-cols-2 p-1 bg-black bg-opacity-60 rounded-xl border border-gray-800">
         <button id="tab-individual" type="button" onclick="setRegistrationMode('individual')" class="py-3.5 text-xs font-bold tracking-wider rounded-lg transition-all duration-200 bg-crimson text-white">
           👤 INDIVIDUAL
@@ -222,19 +216,14 @@
         </button>
       </div>
 
-      <!-- Form container -->
       <form id="register-form" onsubmit="handleRegistration(event)" class="space-y-4 text-left">
-        
-        <!-- Gamified custom Error Banner (Replaces buggy alert blocks) -->
         <div id="register-error-banner" class="hidden p-3.5 rounded-xl bg-red-950 bg-opacity-80 border border-red-900 text-red-400 text-xs font-bold text-center tracking-wide animate-pulse">
-          Error Message Here
+          Error Message
         </div>
 
-        <!-- Individual Inputs -->
         <div id="wrapper-individual-fields" class="space-y-4">
           <div>
             <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Nombre Completo</label>
-            <!-- Removido required nativo para procesarlo por JS con feedback táctil inmediato -->
             <input type="text" id="input-first-name" placeholder="Ej: Juan Sebastián" class="w-full px-4 py-3.5 rounded-xl bg-gray-900 border border-gray-800 text-white focus:outline-none focus:border-crimson focus:ring-1 focus:ring-crimson transition-all text-sm">
           </div>
           <div>
@@ -243,7 +232,6 @@
           </div>
         </div>
 
-        <!-- Group Inputs (Hidden by default) -->
         <div id="wrapper-group-fields" class="space-y-4 hidden">
           <div>
             <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Nombre del Equipo (Opcional)</label>
@@ -260,7 +248,6 @@
             </div>
           </div>
 
-          <!-- Live student roster list -->
           <div>
             <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Miembros del Grupo (<span id="group-counter">0</span>)</span>
             <div id="group-roster-list" class="max-h-36 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
@@ -285,81 +272,111 @@
           ENGLISH <span class="text-crimson text-glow-crimson">QUEST</span>
         </h2>
         <p class="text-gray-400 max-w-xl mx-auto text-base sm:text-lg">
-          Bienvenido <span id="welcome-student-name" class="text-white font-bold text-glow-crimson">Estudiante</span>. Afianza y domina las temáticas clave del Segundo Periodo. Selecciona tu grado estratégico para comenzar.
+          Bienvenido <span id="welcome-student-name" class="text-white font-bold text-glow-crimson">Estudiante</span>. Selecciona tu grado estratégico para comenzar el repaso de las temáticas del Segundo Periodo.
         </p>
       </div>
 
-      <!-- Selector de Grados (Botones Interactivos) -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto pt-4">
-        
         <!-- Grado 9° Card -->
-        <button onclick="startMission(9)" class="group relative flex flex-col items-center justify-between text-left p-6 rounded-2xl bg-gray-950 border border-gray-800 hover:border-crimson transition-all duration-300 transform hover:-translate-y-2 glow-hover bg-gradient-to-b hover:from-gray-950 hover:to-red-950 hover:to-opacity-30 overflow-hidden">
+        <button onclick="selectGrade(9)" class="group relative flex flex-col items-center justify-between text-left p-6 rounded-2xl bg-gray-950 border border-gray-800 hover:border-crimson transition-all duration-300 transform hover:-translate-y-2 glow-hover bg-gradient-to-b hover:from-gray-950 hover:to-red-950 hover:to-opacity-30 overflow-hidden">
           <div class="absolute top-0 right-0 w-24 h-24 bg-crimson opacity-5 rounded-full filter blur-xl group-hover:opacity-20 transition-all"></div>
-          
           <div class="w-14 h-14 rounded-xl bg-gray-900 flex items-center justify-center border border-gray-800 group-hover:border-crimson group-hover:bg-crimson group-hover:text-white text-crimson transition-all mb-6">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2h2m4.6-2.571A10.021 10.021 0 0022 12c0-5.523-4.477-10-10-10a10.021 10.021 0 00-7.396 3.253"/></svg>
           </div>
           <div>
             <div class="tech-font text-xs font-bold text-crimson tracking-widest uppercase mb-1">MISIÓN: ECO-FANATICS</div>
             <h3 class="tech-font text-2xl font-black text-white group-hover:text-glow-crimson mb-2">GRADO 9°</h3>
-            <p class="text-sm text-gray-400 group-hover:text-gray-300">Medio ambiente y hobbies. Evalúa First Conditional, Already/Yet e Intensifiers.</p>
+            <p class="text-sm text-gray-400 group-hover:text-gray-300">Medio ambiente y hobbies. First Conditional, Already/Yet e Intensifiers.</p>
           </div>
           <div class="mt-6 w-full flex items-center justify-between text-xs text-gray-400 group-hover:text-white font-bold">
-            <span>Mecánica: Time Attack (15s)</span>
+            <span>Mecánica: Time Attack</span>
             <svg class="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
           </div>
         </button>
 
         <!-- Grado 10° Card -->
-        <button onclick="startMission(10)" class="group relative flex flex-col items-center justify-between text-left p-6 rounded-2xl bg-gray-950 border border-gray-800 hover:border-crimson transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-b hover:from-gray-950 hover:to-red-950 hover:to-opacity-30 overflow-hidden">
+        <button onclick="selectGrade(10)" class="group relative flex flex-col items-center justify-between text-left p-6 rounded-2xl bg-gray-950 border border-gray-800 hover:border-crimson transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-b hover:from-gray-950 hover:to-red-950 hover:to-opacity-30 overflow-hidden">
           <div class="absolute top-0 right-0 w-24 h-24 bg-crimson opacity-5 rounded-full filter blur-xl group-hover:opacity-20 transition-all"></div>
-          
           <div class="w-14 h-14 rounded-xl bg-gray-900 flex items-center justify-center border border-gray-800 group-hover:border-crimson group-hover:bg-crimson group-hover:text-white text-crimson transition-all mb-6">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
           </div>
           <div>
             <div class="tech-font text-xs font-bold text-crimson tracking-widest uppercase mb-1">MISIÓN: THE LUCKY HOUSE</div>
             <h3 class="tech-font text-2xl font-black text-white group-hover:text-glow-crimson mb-2">GRADO 10°</h3>
-            <p class="text-sm text-gray-400 group-hover:text-gray-300">Supersticiones y hogar. Evalúa Past Perfect, Second Conditional y Adverbios de modo.</p>
+            <p class="text-sm text-gray-400 group-hover:text-gray-300">Supersticiones y hogar. Past Perfect, Second Conditional y Adverbios de modo.</p>
           </div>
           <div class="mt-6 w-full flex items-center justify-between text-xs text-gray-400 group-hover:text-white font-bold">
-            <span>Mecánica: Selection Quest (30s)</span>
+            <span>Mecánica: Selection Quest</span>
             <svg class="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
           </div>
         </button>
 
         <!-- Grado 11° Card -->
-        <button onclick="startMission(11)" class="group relative flex flex-col items-center justify-between text-left p-6 rounded-2xl bg-gray-950 border border-gray-800 hover:border-crimson transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-b hover:from-gray-950 hover:to-red-950 hover:to-opacity-30 overflow-hidden">
+        <button onclick="selectGrade(11)" class="group relative flex flex-col items-center justify-between text-left p-6 rounded-2xl bg-gray-950 border border-gray-800 hover:border-crimson transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-b hover:from-gray-950 hover:to-red-950 hover:to-opacity-30 overflow-hidden">
           <div class="absolute top-0 right-0 w-24 h-24 bg-crimson opacity-5 rounded-full filter blur-xl group-hover:opacity-20 transition-all"></div>
-          
           <div class="w-14 h-14 rounded-xl bg-gray-900 flex items-center justify-center border border-gray-800 group-hover:border-crimson group-hover:bg-crimson group-hover:text-white text-crimson transition-all mb-6">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
           </div>
           <div>
             <div class="tech-font text-xs font-bold text-crimson tracking-widest uppercase mb-1">TACTICAL SIMULATOR</div>
             <h3 class="tech-font text-2xl font-black text-white group-hover:text-glow-crimson mb-2">GRADO 11°</h3>
-            <p class="text-sm text-gray-400 group-hover:text-gray-300">Simulador táctico ICFES Saber 11. Cloze, inferencias y comprensión lectora avanzada.</p>
+            <p class="text-sm text-gray-400 group-hover:text-gray-300">Simulador táctico ICFES Saber 11. Cloze, inferencias y comprensión avanzada.</p>
           </div>
           <div class="mt-6 w-full flex items-center justify-between text-xs text-gray-400 group-hover:text-white font-bold">
-            <span>Mecánica: El Descarte (45s / 90s)</span>
+            <span>Mecánica: El Descarte</span>
             <svg class="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
           </div>
         </button>
-
-      </div>
-
-      <!-- Quick Tips Footer -->
-      <div class="max-w-md mx-auto flex items-center justify-center gap-6 text-xs text-gray-500 font-semibold tracking-wide border-t border-gray-900 pt-6">
-        <span>✓ +BONOS DE VELOCIDAD</span>
-        <span>•</span>
-        <span>⚡ MULTIPLICADOR COMBO</span>
-        <span>•</span>
-        <span>👥 COOP MULTIPLAYER</span>
       </div>
     </section>
 
-    <!-- PANTALLA DE JUEGO GENERAL (GAMEPLAY) -->
-    <section id="screen-gameplay" class="hidden w-full max-w-3xl bg-gray-950 border border-gray-800 rounded-2xl p-6 md:p-8 relative overflow-hidden transition-all duration-300">
+    <!-- STEP 2.5: SELECTOR DE DÍAS -->
+    <section id="screen-day-selector" class="hidden w-full max-w-4xl text-center space-y-10 py-6 transition-all duration-500">
+      <div class="space-y-4">
+        <button onclick="goBackToGrades()" class="inline-flex items-center gap-2 py-1.5 px-3.5 rounded-lg text-xs font-bold bg-gray-900 border border-gray-800 text-gray-400 hover:text-white transition-all transform active:scale-95">
+          ⬅ Cambiar Grado
+        </button>
+        <h2 class="tech-font text-3xl sm:text-5xl font-black text-white tracking-tight">
+          JORNADA DE <span class="text-crimson text-glow-crimson">ENTRENAMIENTO</span>
+        </h2>
+        <p class="text-gray-400 max-w-xl mx-auto text-sm sm:text-base">
+          Selecciona un día para repasar un set de 20 casos/preguntas únicas preparadas para las temáticas del segundo periodo en <span id="day-selector-grade-label" class="text-white font-bold text-glow-crimson">Grado 9°</span>.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+        <!-- Day 1 Card -->
+        <button onclick="selectDay(1)" class="group relative flex flex-col items-center justify-center p-6 rounded-2xl bg-gray-950 border border-gray-800 hover:border-crimson transition-all duration-300 transform hover:-translate-y-1.5 bg-gradient-to-b hover:from-gray-950 hover:to-red-950 hover:to-opacity-30 overflow-hidden min-h-[140px]">
+          <span class="tech-font text-xs font-bold text-crimson tracking-widest uppercase mb-1">ENTRENAMIENTO</span>
+          <h3 class="tech-font text-xl font-black text-white group-hover:text-glow-crimson">DÍA 1</h3>
+          <span class="text-[10px] text-gray-500 group-hover:text-gray-300 font-bold mt-2">Casos 1 - 20</span>
+        </button>
+
+        <!-- Day 2 Card -->
+        <button onclick="selectDay(2)" class="group relative flex flex-col items-center justify-center p-6 rounded-2xl bg-gray-950 border border-gray-800 hover:border-crimson transition-all duration-300 transform hover:-translate-y-1.5 bg-gradient-to-b hover:from-gray-950 hover:to-red-950 hover:to-opacity-30 overflow-hidden min-h-[140px]">
+          <span class="tech-font text-xs font-bold text-crimson tracking-widest uppercase mb-1">ENTRENAMIENTO</span>
+          <h3 class="tech-font text-xl font-black text-white group-hover:text-glow-crimson">DÍA 2</h3>
+          <span class="text-[10px] text-gray-500 group-hover:text-gray-300 font-bold mt-2">Casos 21 - 40</span>
+        </button>
+
+        <!-- Day 3 Card -->
+        <button onclick="selectDay(3)" class="group relative flex flex-col items-center justify-center p-6 rounded-2xl bg-gray-950 border border-gray-800 hover:border-crimson transition-all duration-300 transform hover:-translate-y-1.5 bg-gradient-to-b hover:from-gray-950 hover:to-red-950 hover:to-opacity-30 overflow-hidden min-h-[140px]">
+          <span class="tech-font text-xs font-bold text-crimson tracking-widest uppercase mb-1">ENTRENAMIENTO</span>
+          <h3 class="tech-font text-xl font-black text-white group-hover:text-glow-crimson">DÍA 3</h3>
+          <span class="text-[10px] text-gray-500 group-hover:text-gray-300 font-bold mt-2">Casos 41 - 60</span>
+        </button>
+
+        <!-- Day 4 Card -->
+        <button onclick="selectDay(4)" class="group relative flex flex-col items-center justify-center p-6 rounded-2xl bg-gray-950 border border-gray-800 hover:border-crimson transition-all duration-300 transform hover:-translate-y-1.5 bg-gradient-to-b hover:from-gray-950 hover:to-red-950 hover:to-opacity-30 overflow-hidden min-h-[140px]">
+          <span class="tech-font text-xs font-bold text-crimson tracking-widest uppercase mb-1">ENTRENAMIENTO</span>
+          <h3 class="tech-font text-xl font-black text-white group-hover:text-glow-crimson">DÍA 4</h3>
+          <span class="text-[10px] text-gray-500 group-hover:text-gray-300 font-bold mt-2">Casos 61 - 80</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 3: PANTALLA DE JUEGO GENERAL (GAMEPLAY) -->
+    <section id="screen-gameplay" class="hidden w-full max-w-3xl bg-gray-950 border border-gray-800 rounded-2xl p-6 md:p-8 relative overflow-hidden transition-all duration-300 animate-fade-in">
       
       <!-- Ambient Lights Inside Gameplay Container -->
       <div class="absolute top-0 left-0 w-20 h-20 bg-crimson opacity-[0.03] rounded-full filter blur-xl"></div>
@@ -371,13 +388,13 @@
             GRADO 9°
           </span>
           <span class="text-xs font-bold text-gray-400">
-            Misión: <span id="mission-name" class="text-white text-opacity-90">Eco-Fanatics</span>
+            Día: <span id="mission-day-idx" class="text-white text-opacity-90 font-black">1</span> • Misión: <span id="mission-name" class="text-white text-opacity-95 font-semibold">Eco-Fanatics</span>
           </span>
         </div>
         
         <!-- Live Question Count Indicator -->
         <div class="tech-font text-xs font-semibold text-gray-400 tracking-widest">
-          PREGUNTA: <span id="current-question-idx" class="text-white font-bold text-sm">1</span> / <span id="total-questions-idx">6</span>
+          CASO: <span id="current-question-idx" class="text-white font-bold text-sm">1</span> / <span id="total-questions-idx">6</span>
         </div>
       </div>
 
@@ -444,8 +461,8 @@
 
     </section>
 
-    <!-- PANTALLA DE VICTORIA / CONCLUSIÓN (MISSION ACCOMPLISHED) -->
-    <section id="screen-victory" class="hidden w-full max-w-2xl bg-gray-950 border border-gray-800 rounded-2xl p-8 text-center relative overflow-hidden transition-all duration-300">
+    <!-- STEP 4: PANTALLA DE VICTORIA / CONCLUSIÓN (MISSION ACCOMPLISHED) -->
+    <section id="screen-victory" class="hidden w-full max-w-2xl bg-gray-950 border border-gray-800 rounded-2xl p-8 text-center relative overflow-hidden transition-all duration-300 animate-fade-in">
       
       <!-- Decorative Victory Lights -->
       <div class="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-red-600 to-transparent opacity-10"></div>
@@ -502,7 +519,7 @@
 
   </main>
 
-  <!-- CUSTOM SESSION RECOVERY MODAL overlay (Elevated to z-[100] with solid dark bg) -->
+  <!-- CUSTOM SESSION RECOVERY MODAL overlay -->
   <div id="modal-session-recovery" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-95">
     <div class="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-gray-900 border border-red-900 shadow-2xl relative space-y-6 text-center">
       <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-crimson"></div>
@@ -536,7 +553,6 @@
         </div>
       </div>
 
-      <!-- Buttons are optimized: height py-4, text-sm, very mild scaling on tap to avoid touch cancellation -->
       <div class="flex flex-col sm:flex-row gap-3">
         <button onclick="actionConfirmRecovery()" class="w-full py-4 rounded-xl bg-gradient-to-r from-crimson to-crimson-dark text-white font-bold tracking-wider text-sm uppercase hover:opacity-90 transition-all transform active:scale-[0.99]">
           Reanudar Misión
@@ -548,7 +564,7 @@
     </div>
   </div>
 
-  <!-- CUSTOM CONFIRM TERMINATION MODAL overlay (Elevated to z-[100] with solid dark bg) -->
+  <!-- CUSTOM CONFIRM TERMINATION MODAL overlay -->
   <div id="modal-confirm-termination" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-95">
     <div class="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-gray-900 border border-red-900 shadow-2xl relative space-y-6 text-center">
       <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-crimson"></div>
@@ -614,7 +630,25 @@
     let currentUser = null;
     let cachedRecoveredSession = null;
 
-    // --- AUDIO SYSTEM DEFINITIONS (Restored and Globally Exposed) ---
+    // --- GAME ENGINE GLOBAL SCOPE STATE VARIABLES ---
+    let studentName = "";
+    let registrationMode = "individual"; 
+    let groupStudents = []; 
+    let score = 0;
+    let combo = 1;
+    let currentGrade = 9;
+    let currentDay = 1; // Tracks selected Day 1 to Day 4
+    let currentQuestionIndex = 0;
+    let questionsPool = [];
+    let totalQuestionsToPlay = 6; 
+    let timerInterval = null;
+    let maxSeconds = 15;
+    let currentSecondsLeft = 15;
+    let questionStartTime = 0;
+    let isAnsweringBlocked = false;
+    let isTimerPaused = false; 
+
+    // --- AUDIO SYSTEM DEFINITIONS ---
     let audioEnabled = true;
     let audioCtx = null;
 
@@ -627,7 +661,7 @@
       }
     }
 
-    // Expose playSynthSound to window so inline HTML attributes and outside scopes can resolve it smoothly
+    // Expose playSynthSound to window
     window.playSynthSound = function(type) {
       if (!audioEnabled) return;
       try {
@@ -690,10 +724,8 @@
       }
     };
 
-    // Alias local un-scoped calls to playSynthSound correctly
     const playSynthSound = window.playSynthSound;
 
-    // Expose toggleAudio to toggle audio states
     window.toggleAudio = function() {
       audioEnabled = !audioEnabled;
       document.getElementById('sound-icon-on').classList.toggle('hidden', !audioEnabled);
@@ -701,16 +733,13 @@
       playSynthSound('click');
     };
 
-    // --- ESCUDO FALLBACK SYSTEM (Exposed Globally) ---
+    // --- ESCUDO FALLBACK SYSTEM ---
     window.handleCrestError = function(imgElement) {
-      console.warn("Failsafe: Error loading School Crest image. Activating beautiful vector SVG crest instead.");
+      console.warn("Failsafe: Error loading School Crest image. Activating her heraldic fallback vector.");
       const fallbackSVG = `
         <svg class="w-10 h-10 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <!-- Outer shield border -->
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(220, 38, 38, 0.2)"></path>
-          <!-- Book of knowledge inside crest -->
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke="white"></path>
-          <!-- Stars of Excellence -->
           <path d="M12 2v2M12 20v2" stroke="#DC2626" stroke-width="2" stroke-linecap="round"></path>
         </svg>
       `;
@@ -721,35 +750,124 @@
       }
     };
 
-    // --- GAMIFIED REGISTRATION ERROR HANDLER (No-alert compliant) ---
+    // --- REGISTRATION SCREEN CONTROLLERS ---
+    window.setRegistrationMode = function(mode) {
+      playSynthSound('click');
+      registrationMode = mode;
+      
+      const tabInd = document.getElementById('tab-individual');
+      const tabGrp = document.getElementById('tab-group');
+      const indFields = document.getElementById('wrapper-individual-fields');
+      const grpFields = document.getElementById('wrapper-group-fields');
+
+      if (mode === 'individual') {
+        tabInd.className = "py-3.5 text-xs font-bold tracking-wider rounded-lg transition-all duration-200 bg-crimson text-white";
+        tabGrp.className = "py-3.5 text-xs font-bold tracking-wider rounded-lg transition-all duration-200 text-gray-400 hover:text-white";
+        indFields.classList.remove('hidden');
+        grpFields.classList.add('hidden');
+      } else {
+        tabInd.className = "py-3.5 text-xs font-bold tracking-wider rounded-lg transition-all duration-200 text-gray-400 hover:text-white";
+        tabGrp.className = "py-3.5 text-xs font-bold tracking-wider rounded-lg transition-all duration-200 bg-crimson text-white";
+        indFields.classList.add('hidden');
+        grpFields.classList.remove('hidden');
+      }
+    };
+
+    window.addGroupStudent = function() {
+      const nameInput = document.getElementById('input-add-student-name');
+      const fullName = nameInput.value.trim();
+
+      if (!fullName) return;
+
+      groupStudents.push(fullName);
+      nameInput.value = "";
+      playSynthSound('click');
+      renderGroupRoster();
+    };
+
+    window.removeGroupStudent = function(index) {
+      playSynthSound('discard');
+      groupStudents.splice(index, 1);
+      renderGroupRoster();
+    };
+
+    function renderGroupRoster() {
+      const rosterList = document.getElementById('group-roster-list');
+      const counter = document.getElementById('group-counter');
+      counter.textContent = groupStudents.length;
+
+      if (groupStudents.length === 0) {
+        rosterList.innerHTML = `
+          <div class="text-xs text-gray-500 italic py-2 text-center bg-gray-900 bg-opacity-40 rounded-lg">No hay estudiantes agregados aún.</div>
+        `;
+        return;
+      }
+
+      rosterList.innerHTML = groupStudents.map((student, idx) => `
+        <div class="flex items-center justify-between p-2.5 bg-gray-950 bg-opacity-70 border border-gray-800 rounded-xl">
+          <span class="text-xs font-semibold text-white tracking-wide truncate max-w-[200px]">${idx + 1}. ${student}</span>
+          <button type="button" onclick="removeGroupStudent(${idx})" class="text-xs text-gray-500 hover:text-crimson font-bold px-1.5 transition-colors">
+            ✕
+          </button>
+        </div>
+      `).join('');
+    }
+
     function showRegisterError(message) {
       const banner = document.getElementById('register-error-banner');
       if (banner) {
         banner.textContent = message;
         banner.classList.remove('hidden');
         playSynthSound('wrong');
-        // Auto-hide after 4 seconds
         setTimeout(() => {
           banner.classList.add('hidden');
         }, 4000);
       }
     }
 
-    // Execute Cloud Initialization
+    window.handleRegistration = function(e) {
+      e.preventDefault();
+
+      if (registrationMode === 'individual') {
+        const firstName = document.getElementById('input-first-name').value.trim();
+        const lastName = document.getElementById('input-last-name').value.trim();
+        
+        if (!firstName || !lastName) {
+          showRegisterError("Por favor, ingresa tu Nombre y Apellido completos.");
+          return;
+        }
+        studentName = `${firstName} ${lastName}`;
+      } else {
+        if (groupStudents.length < 2) {
+          showRegisterError("Por favor añade al menos 2 estudiantes para jugar en grupo cooperativo.");
+          return;
+        }
+        const customTeam = document.getElementById('input-team-name').value.trim();
+        studentName = customTeam ? customTeam : "Equipo Liceo";
+      }
+
+      playSynthSound('click');
+
+      document.getElementById('header-student-name').textContent = studentName;
+      document.getElementById('welcome-student-name').textContent = studentName;
+      document.getElementById('victory-student-name').textContent = studentName;
+
+      document.getElementById('screen-register').classList.add('hidden');
+      document.getElementById('screen-home').classList.remove('hidden');
+    };
+
     async function initCloudVault() {
       const cloudLoader = document.getElementById('cloud-loader');
-      
-      // Failsafe timeout: Guarantees the loader is hidden under any circumstances within 3 seconds
       setTimeout(() => {
         const loader = document.getElementById('cloud-loader');
         if (loader && !loader.classList.contains('hidden')) {
-          console.warn("Failsafe: Connection handshake took too long. Operating in offline client mode.");
+          console.warn("Failsafe: Handshake took too long. Running offline.");
           loader.classList.add('hidden');
         }
       }, 3000);
 
       if (!firebaseConfig) {
-        console.warn("No firebaseConfig payload detected. Operating in single-session client mode.");
+        console.warn("No firebaseConfig payload. Running offline.");
         cloudLoader.classList.add('hidden');
         return;
       }
@@ -759,14 +877,12 @@
         auth = getAuth(app);
         db = getFirestore(app);
 
-        // Rule 3: Auth Before Queries
         if (initialAuthToken) {
           await signInWithCustomToken(auth, initialAuthToken);
         } else {
           await signInAnonymously(auth);
         }
 
-        // Setup state change hook
         onAuthStateChanged(auth, async (user) => {
           currentUser = user;
           if (user) {
@@ -774,14 +890,12 @@
           }
           cloudLoader.classList.add('hidden');
         });
-
       } catch (err) {
         console.error("Cloud vault synchronization failed: ", err);
         cloudLoader.classList.add('hidden');
       }
     }
 
-    // Checking if there is any unfinished session matching strict paths (Rule 1)
     async function checkActiveSessionInCloud(userId) {
       if (!db) return;
       try {
@@ -791,24 +905,18 @@
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data && data.isActive) {
-            // Save the snapshot state temporarily
             cachedRecoveredSession = data;
-
-            // Pause game and trigger UI modal alert
             document.getElementById('recovery-student-label').textContent = data.studentName;
-            document.getElementById('recovery-grade-label').textContent = `Grado ${data.currentGrade}°`;
+            document.getElementById('recovery-grade-label').textContent = `Grado ${data.currentGrade}° (Día ${data.currentDay || 1})`;
             document.getElementById('recovery-score-label').textContent = `${data.score} pts`;
-            
-            // Render Recovery Modal
             document.getElementById('modal-session-recovery').classList.remove('hidden');
           }
         }
       } catch (err) {
-        console.error("Error evaluating cloud progress state: ", err);
+        console.error("Error checking cloud progress: ", err);
       }
     }
 
-    // Write / Update local progress directly inside strict path (Rule 1 & Rule 3 Guard)
     async function saveActiveSession() {
       if (!db || !currentUser) return;
       try {
@@ -820,6 +928,7 @@
           score,
           combo,
           currentGrade,
+          currentDay,
           currentQuestionIndex,
           questionsPoolRaw: JSON.stringify(questionsPool),
           totalQuestionsToPlay,
@@ -831,29 +940,27 @@
       }
     }
 
-    // Terminate and wipe database node once completed or discarded
     async function deleteActiveSession() {
       if (!db || !currentUser) return;
       try {
         const sessionDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'progress', 'activeSession');
         await deleteDoc(sessionDocRef);
       } catch (err) {
-        console.error("Error wiping old cloud session node: ", err);
+        console.error("Error wiping old session node: ", err);
       }
     }
 
-    // Modal Interaction Handlers
     window.actionConfirmRecovery = function() {
       if (!cachedRecoveredSession) return;
       playSynthSound('click');
 
-      // Unpack restored session state
       studentName = cachedRecoveredSession.studentName;
       registrationMode = cachedRecoveredSession.registrationMode;
       groupStudents = cachedRecoveredSession.groupStudents || [];
       score = cachedRecoveredSession.score || 0;
       combo = cachedRecoveredSession.combo || 1;
       currentGrade = cachedRecoveredSession.currentGrade;
+      currentDay = cachedRecoveredSession.currentDay || 1;
       currentQuestionIndex = cachedRecoveredSession.currentQuestionIndex || 0;
       totalQuestionsToPlay = cachedRecoveredSession.totalQuestionsToPlay || 6;
       
@@ -861,10 +968,9 @@
         questionsPool = JSON.parse(cachedRecoveredSession.questionsPoolRaw);
       } catch (e) {
         console.error("Failed unpacking question pool. Regenerating.", e);
-        questionsPool = [...database[currentGrade].questions];
+        questionsPool = [...database[currentGrade][currentDay]];
       }
 
-      // Sync user interface representations
       document.getElementById('score-display').textContent = score;
       document.getElementById('combo-badge').textContent = `x${combo}`;
       document.getElementById('header-student-name').textContent = studentName;
@@ -872,10 +978,10 @@
       document.getElementById('victory-student-name').textContent = studentName;
 
       document.getElementById('level-badge').textContent = `GRADO ${currentGrade}°`;
-      document.getElementById('mission-name').textContent = database[currentGrade].missionName;
+      document.getElementById('mission-day-idx').textContent = currentDay;
+      document.getElementById('mission-name').textContent = getMissionName(currentGrade);
       document.getElementById('total-questions-idx').textContent = totalQuestionsToPlay;
 
-      // Handle Coop Multijugador UI Banner if applied
       const turnBanner = document.getElementById('coop-turn-banner');
       if (registrationMode === 'group') {
         turnBanner.classList.remove('hidden');
@@ -883,15 +989,14 @@
         turnBanner.classList.add('hidden');
       }
 
-      // Clean modals
       document.getElementById('modal-session-recovery').classList.add('hidden');
       document.getElementById('screen-register').classList.add('hidden');
       document.getElementById('screen-home').classList.add('hidden');
+      document.getElementById('screen-day-selector').classList.add('hidden');
       document.getElementById('screen-victory').classList.add('hidden');
       document.getElementById('screen-gameplay').classList.remove('hidden');
       document.getElementById('live-scoreboard').classList.remove('hidden');
 
-      // Start gameplay right at restored questions
       loadQuestion();
     }
 
@@ -902,50 +1007,106 @@
       cachedRecoveredSession = null;
     }
 
-    // CORE GAME ENGINE STATE CONTROLLERS
-    let registrationMode = "individual"; 
-    let groupStudents = []; 
-    
-    let studentName = ""; 
-    let score = 0;
-    let combo = 1;
-    let currentGrade = 9;
-    let currentQuestionIndex = 0;
-    let timerInterval = null;
-    let maxSeconds = 15;
-    let currentSecondsLeft = 15;
-    let totalQuestionsToPlay = 6; 
-    let questionsPool = [];
-    let isAnsweringBlocked = false;
-    let questionStartTime = 0;
-    let isTimerPaused = false; // Freeze flag when modal prompts are open
+    // GAME CONTROLLERS
+    function getMissionName(grade) {
+      if (grade === 9) return "Eco-Fanatics";
+      if (grade === 10) return "The Lucky House";
+      return "Saber 11 Tactical Simulator";
+    }
 
-    // Academic Database containing 14 analytical questions per grade
     const database = {
       9: {
-        missionName: "Eco-Fanatics",
-        instruction: "¡Time Attack Trivia! Responde rápidamente para maximizar el bono por tiempo y multiplicadores.",
-        questions: [
-          { question: "If we _________ (recycle) plastic, we will save the ocean.", options: ["recycle", "recycled", "will recycle"], answer: "recycle", topic: "First Conditional" },
-          { question: "We have _________ cleaned the beach, but we haven't sorted the plastic _________.", options: ["already / yet", "yet / already", "already / already"], answer: "already / yet", topic: "Already / Yet" },
-          { question: "The damage to the local coral reef is _________ devastating.", options: ["extremely", "a bit", "yet"], answer: "extremely", topic: "Intensifiers" },
-          { question: "If she _________ (join) the eco-club, she will learn how to compost organic waste.", options: ["joins", "joined", "will join"], answer: "joins", topic: "First Conditional" },
-          { question: "I haven't bought the reusable bottles _________.", options: ["yet", "already", "extremely"], answer: "yet", topic: "Already / Yet" },
-          { question: "The environmental rally last Saturday was _________ exciting!", options: ["really", "yet", "a bit"], answer: "really", topic: "Intensifiers" },
-          { question: "If they don't protect the forests, wild animals _________ their habitats.", options: ["will lose", "lose", "lost"], answer: "will lose", topic: "First Conditional" },
-          { question: "My family has _________ started composting food scraps in the garden.", options: ["already", "yet", "extremely"], answer: "already", topic: "Already / Yet" },
-          { question: "If you _________ (not turn off) the lights, you will waste electricity.", options: ["don't turn off", "won't turn off", "didn't turn off"], answer: "don't turn off", topic: "First Conditional" },
-          { question: "The climate change documentary was _________ detailed, making it perfect for our project.", options: ["extremely", "a bit", "yet"], answer: "extremely", topic: "Intensifiers" },
-          { question: "The eco-friendly alternative is _________ expensive, but still worth buying.", options: ["a bit", "yet", "already"], answer: "a bit", topic: "Intensifiers" },
-          { question: "Have they signed the carbon neutrality pledge _________?", options: ["yet", "already", "extremely"], answer: "yet", topic: "Already / Yet" },
-          { question: "If the temperature rises further, glaciers _________ (melt) significantly faster.", options: ["will melt", "melt", "melted"], answer: "will melt", topic: "First Conditional" },
-          { question: "We have _________ collected ten bags of garbage from the riverbank.", options: ["already", "yet", "extremely"], answer: "already", topic: "Already / Yet" }
+        1: [
+          { question: "If they _________ (use) solar energy, they will reduce emissions.", options: ["use", "used", "will use"], answer: "use", topic: "First Conditional" },
+          { question: "We have _________ designed the wind turbine, but it isn't functional _________.", options: ["already / yet", "yet / already", "already / already"], answer: "already / yet", topic: "Already / Yet" },
+          { question: "Deforestation in this biome is _________ critical.", options: ["extremely", "a bit", "yet"], answer: "extremely", topic: "Intensifiers" },
+          { question: "If the climate changes, many species _________ (lose) their homes.", options: ["will lose", "lose", "lost"], answer: "will lose", topic: "First Conditional" },
+          { question: "They haven't signed the conservation treaty _________.", options: ["yet", "already", "really"], answer: "yet", topic: "Already / Yet" },
+          { question: "Protecting endangered animals is _________ important to us.", options: ["really", "yet", "a bit"], answer: "really", topic: "Intensifiers" },
+          { question: "If we plant trees, the air quality _________ (improve).", options: ["will improve", "improves", "improved"], answer: "will improve", topic: "First Conditional" },
+          { question: "The eco-club has _________ organized three beach cleanups.", options: ["already", "yet", "extremely"], answer: "already", topic: "Already / Yet" },
+          { question: "If you _________ (not save) water, reservoirs will dry out.", options: ["don't save", "didn't save", "won't save"], answer: "don't save", topic: "First Conditional" },
+          { question: "The organic farm is _________ interesting to visit.", options: ["really", "yet", "extremely"], answer: "really", topic: "Intensifiers" },
+          { question: "The electric car is _________ expensive, but it saves money on fuel.", options: ["a bit", "already", "yet"], answer: "a bit", topic: "Intensifiers" },
+          { question: "Have you started your recycling project _________?", options: ["yet", "already", "extremely"], answer: "yet", topic: "Already / Yet" },
+          { question: "If carbon dioxide _________ (increase), global warming will accelerate.", options: ["increases", "will increase", "increased"], answer: "increases", topic: "First Conditional" },
+          { question: "She has _________ bought a compost bin for her garden.", options: ["already", "yet", "really"], answer: "already", topic: "Already / Yet" },
+          { question: "If we protect wild forests, they _________ (produce) clean oxygen.", options: ["will produce", "produce", "produced"], answer: "will produce", topic: "First Conditional" },
+          { question: "The river has been _________ polluted by local factories.", options: ["extremely", "a bit", "yet"], answer: "extremely", topic: "Intensifiers" },
+          { question: "Have they installed the solar panels _________?", options: ["yet", "already", "really"], answer: "yet", topic: "Already / Yet" },
+          { question: "If the storm _________ (hit) the coast, it will erode the dunes.", options: ["hits", "will hit", "hit"], answer: "hits", topic: "First Conditional" },
+          { question: "The wildlife sanctuary has _________ saved fifty sea turtles.", options: ["already", "yet", "extremely"], answer: "already", topic: "Already / Yet" },
+          { question: "My city's green space is _________ small, but they are planting more parks.", options: ["a bit", "extremely", "yet"], answer: "a bit", topic: "Intensifiers" }
+        ],
+        2: [
+          { question: "If you _________ (compost), you will generate rich soil.", options: ["compost", "composted", "will compost"], answer: "compost", topic: "First Conditional" },
+          { question: "I have _________ written the eco-report, but I haven't submitted it _________.", options: ["already / yet", "yet / already", "already / already"], answer: "already / yet", topic: "Already / Yet" },
+          { question: "The garbage patch in the Pacific Ocean is _________ gigantic.", options: ["extremely", "a bit", "yet"], answer: "extremely", topic: "Intensifiers" },
+          { question: "If the glacier melts, sea levels _________ (rise).", options: ["will rise", "rise", "rose"], answer: "will rise", topic: "First Conditional" },
+          { question: "We haven't discussed the carbon footprint _________.", options: ["yet", "already", "extremely"], answer: "yet", topic: "Already / Yet" },
+          { question: "The documentary on marine biomes was _________ educational.", options: ["really", "yet", "a bit"], answer: "really", topic: "Intensifiers" },
+          { question: "If humans protect bees, ecosystems _________ (thrive).", options: ["will thrive", "thrive", "thrived"], answer: "will thrive", topic: "First Conditional" },
+          { question: "My school has _________ banned single-use plastic cups.", options: ["already", "yet", "extremely"], answer: "already", topic: "Already / Yet" },
+          { question: "If they _________ (not decrease) emissions, temperatures will rise.", options: ["don't decrease", "won't decrease", "didn't decrease"], answer: "don't decrease", topic: "First Conditional" },
+          { question: "The mountain trail is _________ steep, so walk carefully.", options: ["a bit", "yet", "already"], answer: "a bit", topic: "Intensifiers" },
+          { question: "The sustainable packaging is _________ expensive compared to plastic.", options: ["a bit", "already", "extremely"], answer: "a bit", topic: "Intensifiers" },
+          { question: "Have they cleaned the municipal park _________?", options: ["yet", "already", "really"], answer: "yet", topic: "Already / Yet" },
+          { question: "If you buy organic food, you _________ (support) local farmers.", options: ["will support", "support", "supported"], answer: "will support", topic: "First Conditional" },
+          { question: "She has _________ joined the green neighborhood alliance.", options: ["already", "yet", "extremely"], answer: "already", topic: "Already / Yet" },
+          { question: "If we save power, we _________ (help) reduce coal consumption.", options: ["will help", "help", "helped"], answer: "will help", topic: "First Conditional" },
+          { question: "Global warming is _________ dangerous for tropical birds.", options: ["extremely", "a bit", "yet"], answer: "extremely", topic: "Intensifiers" },
+          { question: "We haven't met our energy-saving targets _________.", options: ["yet", "already", "really"], answer: "yet", topic: "Already / Yet" },
+          { question: "If you _________ (turn off) the tap, you will conserve water.", options: ["turn off", "will turn off", "turned off"], answer: "turn off", topic: "First Conditional" },
+          { question: "They have _________ planted a community garden in the plaza.", options: ["already", "yet", "extremely"], answer: "already", topic: "Already / Yet" },
+          { question: "Organic cotton is _________ softer than synthetic fiber.", options: ["really", "yet", "extremely"], answer: "really", topic: "Intensifiers" }
+        ],
+        3: [
+          { question: "If we _________ (conserve) paper, we will protect ancient forests.", options: ["conserve", "conserved", "will conserve"], answer: "conserve", topic: "First Conditional" },
+          { question: "The wind farm is _________ active, but the solar field is not ready _________.", options: ["already / yet", "yet / already", "already / already"], answer: "already / yet", topic: "Already / Yet" },
+          { question: "Our reliance on fossil fuels is _________ damaging to the atmosphere.", options: ["extremely", "a bit", "yet"], answer: "extremely", topic: "Intensifiers" },
+          { question: "If temperatures continue to rise, crops _________ (dry) out.", options: ["will dry", "dry", "dried"], answer: "will dry", topic: "First Conditional" },
+          { question: "They haven't designed the recycling bin _________.", options: ["yet", "already", "really"], answer: "yet", topic: "Already / Yet" },
+          { question: "Composting garden waste is _________ simple and fast.", options: ["really", "yet", "a bit"], answer: "really", topic: "Intensifiers" },
+          { question: "If the city bans cars on Sunday, emissions _________ (fall) instantly.", options: ["will fall", "fall", "fell"], answer: "will fall", topic: "First Conditional" },
+          { question: "The local council has _________ approved the green initiative.", options: ["already", "yet", "extremely"], answer: "already", topic: "Already / Yet" },
+          { question: "If you _________ (not compost) food, it will end up in landfills.", options: ["don't compost", "didn't compost", "won't compost"], answer: "don't compost", topic: "First Conditional" },
+          { question: "The community park was _________ small, but clean.", options: ["a bit", "yet", "already"], answer: "a bit", topic: "Intensifiers" },
+          { question: "The environmental law is _________ weak, but still useful.", options: ["a bit", "extremely", "yet"], answer: "a bit", topic: "Intensifiers" },
+          { question: "Have they passed the ocean conservation act _________?", options: ["yet", "already", "really"], answer: "yet", topic: "Already / Yet" },
+          { question: "If you collect rainwater, you _________ (save) money.", options: ["will save", "save", "saved"], answer: "will save", topic: "First Conditional" },
+          { question: "The polar bear has _________ become an icon of climate activism.", options: ["already", "yet", "really"], answer: "already", topic: "Already / Yet" },
+          { question: "If we don't save paper, we _________ (destroy) more woodland.", options: ["will destroy", "destroy", "destroyed"], answer: "will destroy", topic: "First Conditional" },
+          { question: "The water pollution in the lake is _________ severe this month.", options: ["extremely", "a bit", "yet"], answer: "extremely", topic: "Intensifiers" },
+          { question: "They haven't established the nature reserve _________.", options: ["yet", "already", "extremely"], answer: "yet", topic: "Already / Yet" },
+          { question: "If she _________ (buy) reusable bags, she will avoid plastic waste.", options: ["buys", "will buy", "bought"], answer: "buys", topic: "First Conditional" },
+          { question: "We have _________ replaced all traditional bulbs with LED lights.", options: ["already", "yet", "really"], answer: "already", topic: "Already / Yet" },
+          { question: "Volunteering for the beach cleanup is _________ rewarding.", options: ["really", "extremely", "yet"], answer: "really", topic: "Intensifiers" }
+        ],
+        4: [
+          { question: "If the government _________ (tax) carbon, companies will pollute less.", options: ["taxes", "taxed", "will tax"], answer: "taxes", topic: "First Conditional" },
+          { question: "I have _________ sorted my trash, but the collectors haven't arrived _________.", options: ["already / yet", "yet / already", "already / already"], answer: "already / yet", topic: "Already / Yet" },
+          { question: "The rapid melting of Arctic ice is _________ alarming.", options: ["extremely", "a bit", "yet"], answer: "extremely", topic: "Intensifiers" },
+          { question: "If you eat less meat, you _________ (help) reduce methane emissions.", options: ["will help", "help", "helped"], answer: "will help", topic: "First Conditional" },
+          { question: "We haven't started our permaculture course _________.", options: ["yet", "already", "really"], answer: "yet", topic: "Already / Yet" },
+          { question: "The sustainable fashion show was _________ creative.", options: ["really", "yet", "a bit"], answer: "really", topic: "Intensifiers" },
+          { question: "If the forest burns, carbon _________ (escape) into the air.", options: ["will escape", "escapes", "escaped"], answer: "will escape", topic: "First Conditional" },
+          { question: "They have _________ created a biological filter for the municipal water.", options: ["already", "yet", "extremely"], answer: "already", topic: "Already / Yet" },
+          { question: "If we _________ (not save) wild animals, biodiversity will collapse.", options: ["don't save", "didn't save", "won't save"], answer: "don't save", topic: "First Conditional" },
+          { question: "The climate report is _________ dry, but contains valuable facts.", options: ["a bit", "extremely", "yet"], answer: "a bit", topic: "Intensifiers" },
+          { question: "Reducing synthetic pesticides is _________ necessary for soil health.", options: ["extremely", "a bit", "yet"], answer: "extremely", topic: "Intensifiers" },
+          { question: "Have they planted the new community orchard _________?", options: ["yet", "already", "really"], answer: "yet", topic: "Already / Yet" },
+          { question: "If you use public transit, you _________ (reduce) your fossil fuel intake.", options: ["will reduce", "reduce", "reduced"], answer: "will reduce", topic: "First Conditional" },
+          { question: "Our eco-team has _________ published a guide on reduction of plastics.", options: ["already", "yet", "really"], answer: "already", topic: "Already / Yet" },
+          { question: "If wild areas vanish, we _________ (lose) precious medicine sources.", options: ["will lose", "lose", "lost"], answer: "will lose", topic: "First Conditional" },
+          { question: "The smog over the metropolis is _________ thick today.", options: ["extremely", "a bit", "yet"], answer: "extremely", topic: "Intensifiers" },
+          { question: "They haven't signed up for the solar grid _________.", options: ["yet", "already", "really"], answer: "yet", topic: "Already / Yet" },
+          { question: "If you _________ (ride) a bicycle, you will reduce daily city pollution.", options: ["ride", "rode", "will ride"], answer: "ride", topic: "First Conditional" },
+          { question: "My family has _________ installed a graywater system in the bathroom.", options: ["already", "yet", "extremely"], answer: "already", topic: "Already / Yet" },
+          { question: "Reforestation of rural mountains is _________ urgent.", options: ["extremely", "a bit", "yet"], answer: "extremely", topic: "Intensifiers" }
         ]
       },
       10: {
-        missionName: "The Lucky House",
-        instruction: "Hogar y amuletos. Completa correctamente para disolver la mala suerte antes de que expire el tiempo.",
-        questions: [
+        1: [
           { question: "If I found a four-leaf clover, I _________ very happy.", options: ["would be", "will be", "had been"], answer: "would be", topic: "Second Conditional" },
           { question: "She _________ already _________ (wash up) the kitchen dishes before her guests arrived.", options: ["had / washed up", "has / washed up", "did / wash up"], answer: "had / washed up", topic: "Past Perfect & Phrasal Verbs" },
           { question: "The black cat crossed the corridor _________ while we watched.", options: ["silently", "accidental", "silent"], answer: "silently", topic: "Adverb of Manner" },
@@ -959,13 +1120,83 @@
           { question: "By the time we swept the porch, the guests _________ (arrive) with lucky amulets.", options: ["had arrived", "arrived", "have arrived"], answer: "had arrived", topic: "Past Perfect" },
           { question: "If we had a wishing well in our garden, we _________ (throw) a coin in it every day.", options: ["would throw", "will throw", "threw"], answer: "would throw", topic: "Second Conditional" },
           { question: "He organized his bedroom _________ to ensure his dreamcatcher hung in the correct spot.", options: ["neatly", "neat", "had neat"], answer: "neatly", topic: "Adverb of Manner" },
-          { question: "The young boy _________ already _________ (tidy up) his room before the superstitious rituals started.", options: ["had / tidied up", "has / tidied up", "did / tidy up"], answer: "had / tidied up", topic: "Past Perfect & Phrasal Verbs" }
+          { question: "The young boy _________ already _________ (tidy up) his room before the superstitious rituals started.", options: ["had / tidied up", "has / tidied up", "did / tidy up"], answer: "had / tidied up", topic: "Past Perfect & Phrasal Verbs" },
+          { question: "If we saw an eclipse, we _________ (make) a wish for fortune.", options: ["would make", "will make", "had made"], answer: "would make", topic: "Second Conditional" },
+          { question: "She _________ already _________ (set up) the lucky altar before the full moon began.", options: ["had / set up", "has / set up", "did / set up"], answer: "had / set up", topic: "Past Perfect & Phrasal Verbs" },
+          { question: "The spider crawled _________ across the bathroom wall, which is considered a good luck sign.", options: ["slowly", "slow", "slowness"], answer: "slowly", topic: "Adverb of Manner" },
+          { question: "If you broke a mirror, _________ you worry about bad luck?", options: ["would", "will", "did"], answer: "would", topic: "Second Conditional" },
+          { question: "They _________ (not sweep) the floor before the bad luck superstition occurred.", options: ["had not swept", "have not swept", "did not sweep"], answer: "had not swept", topic: "Past Perfect" },
+          { question: "She placed the crystal _________ on the window sill to catch the beneficial morning light.", options: ["cautiously", "cautious", "caution"], answer: "cautiously", topic: "Adverb of Manner" }
+        ],
+        2: [
+          { question: "If I was a wizard, I _________ (brew) lucky potions.", options: ["would brew", "will brew", "had brewed"], answer: "would brew", topic: "Second Conditional" },
+          { question: "By noon, they _________ (clean up) all the salt they had spilled.", options: ["had cleaned up", "has cleaned up", "did clean up"], answer: "had cleaned up", topic: "Past Perfect" },
+          { question: "He walked _________ under the tall ladder to prove he was not superstitious.", options: ["boldly", "bold", "boldness"], answer: "boldly", topic: "Adverb of Manner" },
+          { question: "If you _________ (find) a gold coin, would you keep it?", options: ["found", "find", "will find"], answer: "found", topic: "Second Conditional" },
+          { question: "We _________ already _________ (hang up) the lucky horseshoe before she entered.", options: ["had / hung up", "has / hung up", "did / hang up"], answer: "had / hung up", topic: "Past Perfect" },
+          { question: "The wind blew the door shut _________ and scared the children.", options: ["noisily", "noisy", "noise"], answer: "noisily", topic: "Adverb of Manner" },
+          { question: "If she won the lottery, she _________ (buy) a lucky mansion.", options: ["would buy", "will buy", "bought"], answer: "would buy", topic: "Second Conditional" },
+          { question: "The storm _________ (destroy) the old chimney before we bought the lucky charm.", options: ["had destroyed", "destroyed", "has destroyed"], answer: "had destroyed", topic: "Past Perfect" },
+          { question: "If we had a black cat, we _________ (name) it Clover.", options: ["would name", "will name", "named"], answer: "would name", topic: "Second Conditional" },
+          { question: "The owl hooted _________ in the dark tree, which was an eerie sign.", options: ["loudly", "loud", "loudness"], answer: "loudly", topic: "Adverb of Manner" },
+          { question: "She _________ already _________ (put away) the crystal balls before her mother arrived.", options: ["had / put away", "has / put away", "did / put away"], answer: "had / put away", topic: "Past Perfect" },
+          { question: "If they _________ (know) the myth, they wouldn't cross their fingers.", options: ["knew", "know", "had known"], answer: "knew", topic: "Second Conditional" },
+          { question: "He placed the lucky penny _________ inside his left leather shoe.", options: ["carefully", "careful", "carefulness"], answer: "carefully", topic: "Adverb of Manner" },
+          { question: "By the time he came, she _________ (blow out) the lucky candles.", options: ["had blown out", "blew out", "has blown out"], answer: "had blown out", topic: "Past Perfect" },
+          { question: "If you lived in Ireland, _________ you look for leprechauns?", options: ["would", "will", "did"], answer: "would", topic: "Second Conditional" },
+          { question: "They _________ (not wipe down) the counters before the salt was spilled.", options: ["had not wiped down", "did not wipe down", "have not wiped down"], answer: "had not wiped down", topic: "Past Perfect" },
+          { question: "The luck symbol was drawn _________ on the paper parchment.", options: ["beautifully", "beautiful", "beauty"], answer: "beautifully", topic: "Adverb of Manner" },
+          { question: "If you saw a shooting star, what _________ you ask for?", options: ["would", "will", "did"], answer: "would", topic: "Second Conditional" },
+          { question: "He _________ (throw away) the broken talisman before I could save it.", options: ["had thrown away", "threw away", "has thrown away"], answer: "had thrown away", topic: "Past Perfect" },
+          { question: "She solved the mystery _________ with her grandfather's lucky notebook.", options: ["easily", "easy", "easiness"], answer: "easily", topic: "Adverb of Manner" }
+        ],
+        3: [
+          { question: "If they _________ (possess) the magic amulet, they would have great fortune.", options: ["possessed", "possess", "would possess"], answer: "possessed", topic: "Second Conditional" },
+          { question: "Before she went out, she _________ (switch off) the lucky salt lamp.", options: ["had switched off", "has switched off", "switched off"], answer: "had switched off", topic: "Past Perfect" },
+          { question: "The clock ticked _________ in the quiet room of superstitions.", options: ["steadily", "steady", "steadiness"], answer: "steadily", topic: "Adverb of Manner" },
+          { question: "If we _________ (meet) a fortune teller, we would ask about our school grade.", options: ["met", "meet", "would meet"], answer: "met", topic: "Second Conditional" },
+          { question: "They _________ (not lock up) the lucky house before they left for vacation.", options: ["had not locked up", "did not lock up", "have not locked up"], answer: "had not locked up", topic: "Past Perfect" },
+          { question: "He crossed the suspension bridge _________ because of his lucky socks.", options: ["fearlessly", "fearless", "fear"], answer: "fearlessly", topic: "Adverb of Manner" },
+          { question: "If you broke your leg, _________ you blame it on bad luck?", options: ["would", "will", "did"], answer: "would", topic: "Second Conditional" },
+          { question: "She _________ already _________ (write down) her dreams before she read the interpretation book.", options: ["had / written down", "has / written down", "did / write down"], answer: "had / written down", topic: "Past Perfect" },
+          { question: "If she owned a green gemstone, she _________ (wear) it daily.", options: ["would wear", "will wear", "wore"], answer: "would wear", topic: "Second Conditional" },
+          { question: "The rain fell _________ on the roof while we searched for the clover.", options: ["heavily", "heavy", "heaviness"], answer: "heavily", topic: "Adverb of Manner" },
+          { question: "The family _________ (move out) of the house before the superstitious legend became popular.", options: ["had moved out", "moved out", "has moved out"], answer: "had moved out", topic: "Past Perfect" },
+          { question: "If you _________ (touch) wood, would you feel safer?", options: ["touched", "touch", "will touch"], answer: "touched", topic: "Second Conditional" },
+          { question: "He entered the ancient temple _________ to show respect to the old spirits.", options: ["humbly", "humble", "humility"], answer: "humbly", topic: "Adverb of Manner" },
+          { question: "By the time we arrived, she _________ (wash up) all the magical crystal cups.", options: ["had washed up", "washed up", "has washed up"], answer: "had washed up", topic: "Past Perfect" },
+          { question: "If we went to Scotland, we _________ (explore) the mythical Loch Ness.", options: ["would explore", "will explore", "explored"], answer: "would explore", topic: "Second Conditional" },
+          { question: "They _________ (not blow out) the candles before the lucky spell began.", options: ["had not blown out", "did not blow out", "have not blown out"], answer: "had not blown out", topic: "Past Perfect" },
+          { question: "The lucky coin fell _________ down the deep, dark well.", options: ["quickly", "quick", "quickness"], answer: "quickly", topic: "Adverb of Manner" },
+          { question: "If you saw an omen, _________ you change your travel plans?", options: ["would", "will", "did"], answer: "would", topic: "Second Conditional" },
+          { question: "He _________ (tidy up) the entire room before his superstitious aunt visited.", options: ["had tidied up", "tidied up", "has tidied up"], answer: "had tidied up", topic: "Past Perfect" },
+          { question: "She wore her red ribbons _________ to ward off negative vibes.", options: ["proudly", "proud", "pride"], answer: "proudly", topic: "Adverb of Manner" }
+        ],
+        4: [
+          { question: "If you had a lucky charm, _________ you lend it to your best friend?", options: ["would", "will", "did"], answer: "would", topic: "Second Conditional" },
+          { question: "He _________ already _________ (put on) his lucky shirt before the final soccer match began.", options: ["had / put on", "has / put on", "did / put on"], answer: "had / put on", topic: "Past Perfect" },
+          { question: "The wind chimed _________ as the lucky breeze swept through.", options: ["softly", "soft", "softness"], answer: "softly", topic: "Adverb of Manner" },
+          { question: "If they _________ (win) the lottery, they would donate half to a cat shelter.", options: ["won", "win", "will win"], answer: "won", topic: "Second Conditional" },
+          { question: "By midnight, the magician _________ (disappear) with all his amulets.", options: ["had disappeared", "disappeared", "has disappeared"], answer: "had disappeared", topic: "Past Perfect" },
+          { question: "They walked _________ around the dark alley to avoid any bad omens.", options: ["quietly", "quiet", "quietness"], answer: "quietly", topic: "Adverb of Manner" },
+          { question: "If you _________ (have) three wishes, what would you ask for?", options: ["had", "have", "would have"], answer: "had", topic: "Second Conditional" },
+          { question: "We _________ (clean up) the basement before we found the old horse-shoe amulet.", options: ["had cleaned up", "cleaned up", "has cleaned up"], answer: "had cleaned up", topic: "Past Perfect" },
+          { question: "If I found a magical crystal, I _________ (keep) it in my pocket.", options: ["would keep", "will keep", "kept"], answer: "would keep", topic: "Second Conditional" },
+          { question: "The old man spoke _________ about the ancient house superstitions.", options: ["wise", "wisely", "wisdom"], answer: "wisely", topic: "Adverb of Manner" },
+          { question: "They _________ already _________ (hang up) the lucky dreamcatcher before we went to bed.", options: ["had / hung up", "has / hung up", "did / hang up"], answer: "had / hung up", topic: "Past Perfect" },
+          { question: "If you _________ (meet) a wizard, would you believe him?", options: ["met", "meet", "will meet"], answer: "met", topic: "Second Conditional" },
+          { question: "She polished the silver amulet _________ to make it shine.", options: ["neatly", "neat", "neatness"], answer: "neatly", topic: "Adverb of Manner" },
+          { question: "By the time we left, they _________ (take away) the unlucky cards.", options: ["had taken away", "took away", "has taken away"], answer: "had taken away", topic: "Past Perfect" },
+          { question: "If we found a lucky pearl, we _________ (sell) it for a million dollars.", options: ["would sell", "will sell", "sold"], answer: "would sell", topic: "Second Conditional" },
+          { question: "They _________ (not wash up) the lucky cauldron before the ritual started.", options: ["had not washed up", "did not wash up", "have not washed up"], answer: "had not washed up", topic: "Past Perfect" },
+          { question: "He crossed his fingers _________ beneath the wooden table.", options: ["secretly", "secret", "secrecy"], answer: "secretly", topic: "Adverb of Manner" },
+          { question: "If you saw a white raven, _________ you consider it lucky?", options: ["would", "will", "did"], answer: "would", topic: "Second Conditional" },
+          { question: "She _________ (tidy up) the lucky altar before the moon rose.", options: ["had tidied up", "tidied up", "has tidied up"], answer: "had tidied up", topic: "Past Perfect" },
+          { question: "The children played _________ in the backyard of the magical house.", options: ["happily", "happy", "happiness"], answer: "happily", topic: "Adverb of Manner" }
         ]
       },
       11: {
-        missionName: "Saber 11 Tactical Simulator",
-        instruction: "Mecánica del Descarte: Tacha opciones dudosas con [✖] para deducir la respuesta correcta.",
-        questions: [
+        1: [
           {
             passage: "Artificial Intelligence is (1)___ a vital ally in monitoring global biodiversity. Advanced sensors can hear sound patterns in tropical forests to track bird species.",
             question: "Select the correct option to fill blank (1):",
@@ -984,12 +1215,12 @@
             passage: "Although most modern organizations have digitized their workflow, some traditional methods of records management are still highly praised by administrators who believe physical paper guarantees long-term durability against digital cyberattacks.",
             question: "What is the main implication of the text above?",
             options: [
-              "A) Digital archives are completely vulnerable to all forms of daily cyber threats.", 
-              "B) Traditional record methods still hold recognized value for some organizations.", 
-              "C) All modern corporations must revert immediately to obsolete paper-based systems.", 
-              "D) Administrators prefer slow systems to make their workspaces look more traditional."
+              "A) Digital archives are completely vulnerable to all threats.", 
+              "B) Traditional record methods still hold recognized value.", 
+              "C) All modern corporations must revert immediately to paper.", 
+              "D) Administrators prefer slow systems to avoid extra work."
             ],
-            answer: "B) Traditional record methods still hold recognized value for some organizations.",
+            answer: "B) Traditional record methods still hold recognized value.",
             topic: "Saber 11 Part 7 (Critical Inference)"
           },
           {
@@ -1034,7 +1265,7 @@
           },
           {
             passage: "We must always take all potential environmental consequences (9)___ account before initiating any mass production processes.",
-            question: "Select the correct preposition (9):",
+            question: "Select the correct option (9):",
             options: ["A) into", "B) over", "C) for", "D) onto"],
             answer: "A) into",
             topic: "Saber 11 Part 5 (Prepositional Verbs)"
@@ -1069,103 +1300,573 @@
             ],
             answer: "B) It achieves outstanding independence from external seasonal weather conditions.",
             topic: "Saber 11 Part 7 (Reading Comprehension)"
+          },
+          {
+            passage: "He decided to set (13)___ some money every month to invest in the eco-startup project.",
+            question: "Choose the correct phrasal preposition (13):",
+            options: ["A) aside", "B) up", "C) down", "D) off"],
+            answer: "A) aside",
+            topic: "Saber 11 Part 5 (Phrasal Verbs)"
+          },
+          {
+            passage: "The technology company succeeded in breaking (14)___ the international market last winter.",
+            question: "Select the option to complete the phrase (14):",
+            options: ["A) into", "B) out", "C) off", "D) down"],
+            answer: "A) into",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "Had they known the digital backup was corrupt, they (15)___ a physical archive immediately.",
+            question: "Choose the correct verbal structure (15):",
+            options: ["A) would have created", "B) will create", "C) created", "D) would create"],
+            answer: "A) would have created",
+            topic: "Saber 11 Part 6 (Conditionals)"
+          },
+          {
+            passage: "Electric vehicles are (16)___ considered a green alternative to traditional gas cars.",
+            question: "Choose the correct adverb (16):",
+            options: ["A) widely", "B) wide", "C) widen", "D) width"],
+            answer: "A) widely",
+            topic: "Saber 11 Part 6 (Adverbs)"
+          },
+          {
+            passage: "The team had to call (17)___ the ecological research because of the severe hurricane.",
+            question: "Select the correct option (17):",
+            options: ["A) off", "B) on", "C) out", "D) up"],
+            answer: "A) off",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "The local wildlife sanctuary (18)___ by over a thousand eco-tourists every weekend.",
+            question: "Select the correct passive structure (18):",
+            options: ["A) is visited", "B) was visiting", "C) visits", "D) visited"],
+            answer: "A) is visited",
+            topic: "Saber 11 Part 6 (Passive Voice)"
+          },
+          {
+            passage: "We have to carry (19)___ the laboratory tests to verify if the river contains heavy metals.",
+            question: "Select the correct option (19):",
+            options: ["A) out", "B) up", "C) on", "D) off"],
+            answer: "A) out",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "The economic crisis didn't allow the firm to invest in green energy, (20)___ made directors very sad.",
+            question: "Choose the correct relative pronoun (20):",
+            options: ["A) which", "B) who", "C) whose", "D) what"],
+            answer: "A) which",
+            topic: "Saber 11 Part 6 (Relative Clauses)"
+          }
+        ],
+        2: [
+          {
+            passage: "Renewable energy has (1)___ a focal point for global economic policies over the last five years.",
+            question: "Select the correct verbal form (1):",
+            options: ["A) become", "B) becoming", "C) became", "D) becomes"],
+            answer: "A) become",
+            topic: "Saber 11 Part 6 (Verb Forms)"
+          },
+          {
+            passage: "If we don't implement carbon taxes, the industries (2)___ the environment without limits.",
+            question: "Select the option that properly completes space (2):",
+            options: ["A) will damage", "B) would damage", "C) damaged", "D) damage"],
+            answer: "A) will damage",
+            topic: "Saber 11 Part 6 (Conditionals)"
+          },
+          {
+            passage: "Hydroponic farming represents a shift from soil-based horticulture. Biologists show that this method cuts water waste by ninety percent, although the infrastructure cost remains extremely high.",
+            question: "What is the main advantage of hydroponic farming according to the text?",
+            options: [
+              "A) It requires no electricity or initial infrastructure investments.", 
+              "B) It achieves significant water conservation compared to soil farming.", 
+              "C) It grows plants that are naturally immune to all global viruses.", 
+              "D) It can only be practiced in small local urban centers."
+            ],
+            answer: "B) It achieves significant water conservation compared to soil farming.",
+            topic: "Saber 11 Part 7 (Reading Comprehension)"
+          },
+          {
+            passage: "The scientist had to go (4)___ her field notes multiple times before she presented her conclusion.",
+            question: "Choose the correct phrasal preposition (4):",
+            options: ["A) over", "B) through", "C) with", "D) off"],
+            answer: "A) over",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "The project was put (5)___ because they lacked the necessary capital.",
+            question: "Select the option to complete the phrase (5):",
+            options: ["A) off", "B) up", "C) on", "D) down"],
+            answer: "A) off",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "Biodiversity is decreasing at an alarming rate in South American tropical forests. Scientists state that global trade of exotic woods is the main driver, which requires immediate systemic control rather than small voluntary limits.",
+            question: "What is the primary cause of decreasing biodiversity in the text?",
+            options: [
+              "A) Natural climate cycles that occur over thousands of years.", 
+              "B) The global trade of exotic woods.", 
+              "C) Voluntary limits created by local ecological groups.", 
+              "D) Excessive rainfall in tropical regions."
+            ],
+            answer: "B) The global trade of exotic woods.",
+            topic: "Saber 11 Part 7 (Inference)"
+          },
+          {
+            passage: "Modern laboratories (7)___ developed green synthesis protocols to reduce toxic waste.",
+            question: "Choose the correct option (7):",
+            options: ["A) have", "B) had", "C) has", "D) having"],
+            answer: "A) have",
+            topic: "Saber 11 Part 6 (Verb Tense)"
+          },
+          {
+            passage: "If they had invested in electric trains, the city's air quality (8)___ better.",
+            question: "Select the correct conditional structure (8):",
+            options: ["A) would have been", "B) will be", "C) is", "D) would be"],
+            answer: "A) would have been",
+            topic: "Saber 11 Part 6 (Conditionals)"
+          },
+          {
+            passage: "We need to deal (9)___ the plastic waste problem before it reaches the oceanic reserves.",
+            question: "Select the correct option (9):",
+            options: ["A) with", "B) of", "C) on", "D) over"],
+            answer: "A) with",
+            topic: "Saber 11 Part 5 (Prepositional Verbs)"
+          },
+          {
+            passage: "Autonomous vehicles use machine learning models to detect pedestrians in city streets. However, sudden weather shifts can confuse the car's visual sensors, making absolute autonomy dangerous.",
+            question: "What is a main limitation for autonomous vehicles mentioned in the text?",
+            options: [
+              "A) High production costs of modern lithium batteries.", 
+              "B) Sensor errors caused by sudden weather changes.", 
+              "C) A total lack of public charging stations in modern cities.", 
+              "D) Slow processing speed of subatomic computers."
+            ],
+            answer: "B) Sensor errors caused by sudden weather changes.",
+            topic: "Saber 11 Part 7 (Critical Reading)"
+          },
+          {
+            passage: "The startup succeeded in bringing (11)___ new green alternatives for packaging.",
+            question: "Choose the correct option (11):",
+            options: ["A) about", "B) out", "C) up", "D) in"],
+            answer: "A) out",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "Some ancient tribes lived in total symbiosis with their local forests, using complex rotations to allow soil recovery. Modern agricultural firms have recently started copying these methods to recover degraded fields.",
+            question: "What are modern firms copying from ancient tribes?",
+            options: [
+              "A) High-tech genetic modification systems for corn.", 
+              "B) Soil rotation techniques to recover fields.", 
+              "C) Chemical pesticides used to destroy toxic bugs.", 
+              "D) The construction of modern concrete glasshouses."
+            ],
+            answer: "B) Soil rotation techniques to recover fields.",
+            topic: "Saber 11 Part 7 (Inference)"
+          },
+          {
+            passage: "The system crashed because the technician forgot to back (13)___ the files.",
+            question: "Select the correct option (13):",
+            options: ["A) up", "B) down", "C) out", "D) off"],
+            answer: "A) up",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "She is very good (14)___ analyzing statistical charts about climate variations.",
+            question: "Select the correct preposition (14):",
+            options: ["A) at", "B) in", "C) on", "D) with"],
+            answer: "A) at",
+            topic: "Saber 11 Part 5 (Prepositions)"
+          },
+          {
+            passage: "By the time the eco-summit began, the scientists (15)___ their joint declaration.",
+            question: "Choose the correct verbal structure (15):",
+            options: ["A) had written", "B) wrote", "C) write", "D) have written"],
+            answer: "A) had written",
+            topic: "Saber 11 Part 6 (Past Perfect)"
+          },
+          {
+            passage: "The environmental regulations were (16)___ signed by the minister last night.",
+            question: "Select the correct verbal form (16):",
+            options: ["A) officially", "B) official", "C) officiality", "D) officiate"],
+            answer: "A) officially",
+            topic: "Saber 11 Part 6 (Adverbs)"
+          },
+          {
+            passage: "We must look (17)___ new ways to generate clean energy without using nuclear elements.",
+            question: "Select the correct option (17):",
+            options: ["A) for", "B) at", "C) after", "D) into"],
+            answer: "A) for",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "The old solar panels (18)___ by next week to avoid efficiency drops.",
+            question: "Select the correct verbal structure (18):",
+            options: ["A) will be replaced", "B) replace", "C) are replacing", "D) have replaced"],
+            answer: "A) will be replaced",
+            topic: "Saber 11 Part 6 (Passive Voice)"
+          },
+          {
+            passage: "He had to give (19)___ his research because of lack of financial sponsorship.",
+            question: "Select the correct option (19):",
+            options: ["A) up", "B) down", "C) off", "D) in"],
+            answer: "A) up",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "The director (20)___ designed the recycling plant is getting an award today.",
+            question: "Choose the correct relative pronoun (20):",
+            options: ["A) who", "B) which", "C) whose", "D) what"],
+            answer: "A) who",
+            topic: "Saber 11 Part 6 (Relative Clauses)"
+          }
+        ],
+        3: [
+          {
+            passage: "The search for clean fuel sources has (1)___ several interesting discoveries lately.",
+            question: "Select the correct verbal form (1):",
+            options: ["A) led to", "B) lead to", "C) leading to", "D) leads to"],
+            answer: "A) led to",
+            topic: "Saber 11 Part 5 (Prepositional Verbs)"
+          },
+          {
+            passage: "If we designed better carbon capture systems, we (2)___ the atmospheric temperature.",
+            question: "Select the option that properly completes space (2):",
+            options: ["A) would reduce", "B) will reduce", "C) reduced", "D) reduce"],
+            answer: "A) would reduce",
+            topic: "Saber 11 Part 6 (Conditionals)"
+          },
+          {
+            passage: "The digital divide is closing in urban hubs but expanding in rural sectors. Sociologists warn that if high-speed optical fiber isn't subsidized, rural educational performance will suffer immensely.",
+            question: "What is the main danger mentioned in the text?",
+            options: [
+              "A) Rural sectors will have too much exposure to social networks.", 
+              "B) Educational performance in rural areas will decline without fiber.", 
+              "C) Urban hubs will lose their technological superiority.", 
+              "D) Sociologists will stop analyzing educational trends."
+            ],
+            answer: "B) Educational performance in rural areas will decline without fiber.",
+            topic: "Saber 11 Part 7 (Critical Inference)"
+          },
+          {
+            passage: "She had to look (4)___ the chemical formula in the scientific database.",
+            question: "Choose the correct option (4):",
+            options: ["A) up", "B) down", "C) out", "D) after"],
+            answer: "A) up",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "The start-up was set (5)___ by three young graduates.",
+            question: "Select the correct phrasal preposition (5):",
+            options: ["A) up", "B) out", "C) down", "D) off"],
+            answer: "A) up",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "Space exploration has driven several commercial inventions, like water filters and thermal blankets. Astronomers note that space programs are the principal incubator for modern materials science.",
+            question: "What is a secondary benefit of space exploration?",
+            options: [
+              "A) Finding new habitable planets within our solar system.", 
+              "B) Driving commercial inventions like filters and blankets.", 
+              "C) Decreasing global carbon emissions on Earth.", 
+              "D) Reducing the cost of commercial aviation."
+            ],
+            answer: "B) Driving commercial inventions like filters and blankets.",
+            topic: "Saber 11 Part 7 (Reading Comprehension)"
+          },
+          {
+            passage: "Genetic engineering (7)___ advanced to a point where we can prevent hereditary diseases.",
+            question: "Choose the correct option (7):",
+            options: ["A) has", "B) have", "C) having", "D) had"],
+            answer: "A) has",
+            topic: "Saber 11 Part 6 (Verb Tense)"
+          },
+          {
+            passage: "If we had designed a better plan, we (8)___ all these complications.",
+            question: "Select the correct conditional structure (8):",
+            options: ["A) would have avoided", "B) will avoid", "C) avoided", "D) would avoid"],
+            answer: "A) would have avoided",
+            topic: "Saber 11 Part 6 (Conditionals)"
+          },
+          {
+            passage: "We need to focus (9)___ reducing carbon outputs immediately.",
+            question: "Select the correct preposition (9):",
+            options: ["A) on", "B) in", "C) at", "D) over"],
+            answer: "A) on",
+            topic: "Saber 11 Part 5 (Prepositions)"
+          },
+          {
+            passage: "Nanotechnology is modifying modern oncology. Micro-capsules can deliver chemotherapy directly to cancer cells, sparing healthy tissue and avoiding typical side effects.",
+            question: "Why is nanotechnology beneficial for oncology according to the text?",
+            options: [
+              "A) It is cheaper than traditional pharmaceutical compounds.", 
+              "B) It delivers therapy directly to cancer cells, sparing healthy tissue.", 
+              "C) It completely eliminates the need for any chemical treatment.", 
+              "D) It can be synthesized at home using simple tools."
+            ],
+            answer: "B) It delivers therapy directly to cancer cells, sparing healthy tissue.",
+            topic: "Saber 11 Part 7 (Critical Reading)"
+          },
+          {
+            passage: "The program was carried (11)___ with total success by the green committee.",
+            question: "Choose the correct option (11):",
+            options: ["A) out", "B) up", "C) on", "D) down"],
+            answer: "A) out",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "Geothermal energy utilizes heat from the Earth's core to turn steam turbines. Although it offers a stable baseline supply of power, geographical limitations prevent universal deployment.",
+            question: "What is a main limitation of geothermal energy?",
+            options: [
+              "A) It generates high amounts of carbon monoxide.", 
+              "B) Geographical limitations prevent universal deployment.", 
+              "C) The steam turbines are highly noisy and unsafe.", 
+              "D) It only functions during hot summer months."
+            ],
+            answer: "B) Geographical limitations prevent universal deployment.",
+            topic: "Saber 11 Part 7 (Reading Comprehension)"
+          },
+          {
+            passage: "The company had to lay (13)___ twenty workers because of technological automation.",
+            question: "Select the correct option (13):",
+            options: ["A) off", "B) out", "C) down", "D) up"],
+            answer: "A) off",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "She is passionate (14)___ protecting marine biomes from plastic trash.",
+            question: "Select the correct preposition (14):",
+            options: ["A) about", "B) with", "C) in", "D) of"],
+            answer: "A) about",
+            topic: "Saber 11 Part 5 (Prepositions)"
+          },
+          {
+            passage: "Before the storm arrived, the volunteers (15)___ the temporary shelter.",
+            question: "Choose the correct verbal structure (15):",
+            options: ["A) had built", "B) build", "C) has built", "D) have built"],
+            answer: "A) had built",
+            topic: "Saber 11 Part 6 (Past Perfect)"
+          },
+          {
+            passage: "The green startup's ideas were (16)___ accepted by the local council.",
+            question: "Select the correct option (16):",
+            options: ["A) enthusiastically", "B) enthusiastic", "C) enthusiasm", "D) enthusiast"],
+            answer: "A) enthusiastically",
+            topic: "Saber 11 Part 6 (Adverbs)"
+          },
+          {
+            passage: "The committee decided to look (17)___ the river contamination case.",
+            question: "Select the correct option (17):",
+            options: ["A) into", "B) for", "C) after", "D) up"],
+            answer: "A) into",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "The plastic bottles (18)___ into new playground tiles next week.",
+            question: "Select the correct passive structure (18):",
+            options: ["A) will be recycled", "B) recycle", "C) are recycling", "D) recycled"],
+            answer: "A) will be recycled",
+            topic: "Saber 11 Part 6 (Passive Voice)"
+          },
+          {
+            passage: "We had to back (19)___ of the coalition because of ethical differences.",
+            question: "Select the correct option (19):",
+            options: ["A) out", "B) up", "C) off", "D) down"],
+            answer: "A) out",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "The chemical (20)___ caused the forest fire has been banned by the state.",
+            question: "Choose the correct relative pronoun (20):",
+            options: ["A) which", "B) who", "C) whose", "D) whom"],
+            answer: "A) which",
+            topic: "Saber 11 Part 6 (Relative Clauses)"
+          }
+        ],
+        4: [
+          {
+            passage: "Global carbon emission levels have (1)___ historic records this year.",
+            question: "Select the correct verbal form (1):",
+            options: ["A) reached", "B) reach", "C) reaching", "D) reaches"],
+            answer: "A) reached",
+            topic: "Saber 11 Part 6 (Verb Forms)"
+          },
+          {
+            passage: "If the city had prioritized bicycle lanes, commuter traffic (2)___ by thirty percent.",
+            question: "Select the option that properly completes space (2):",
+            options: ["A) would have decreased", "B) will decrease", "C) decreased", "D) would decrease"],
+            answer: "A) would have decreased",
+            topic: "Saber 11 Part 6 (Conditionals)"
+          },
+          {
+            passage: "Desalination technology turns saltwater into drinkable liquid. Economists argue that high thermal requirements make it a luxury only wealthy dry nations can afford.",
+            question: "Who can realistically afford desalination according to the text?",
+            options: [
+              "A) Any nation that has access to local oceanic coasts.", 
+              "B) Wealthy, dry nations because of high thermal requirements.", 
+              "C) Agricultural communities with large river basins.", 
+              "D) Micro-urban centers that use solar batteries."
+            ],
+            answer: "B) Wealthy, dry nations because of high thermal requirements.",
+            topic: "Saber 11 Part 7 (Critical Reading)"
+          },
+          {
+            passage: "They had to put (4)___ with the noisy diesel generator for three days.",
+            question: "Choose the correct phrasal preposition (4):",
+            options: ["A) up", "B) down", "C) off", "D) in"],
+            answer: "A) up",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "The forest fire was put (5)___ by the local volunteer fire department.",
+            question: "Select the correct option (5):",
+            options: ["A) out", "B) up", "C) down", "D) off"],
+            answer: "A) out",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "Smart grids automatically route electric power to areas that have high demand. Engineers demonstrate that this smart distribution prevents blackouts and minimizes energy loss.",
+            question: "What is a main benefit of smart grids?",
+            options: [
+              "A) They generate electricity from organic wind cycles.", 
+              "B) They prevent blackouts and minimize energy loss.", 
+              "C) They reduce the electrical bills of poor citizens by half.", 
+              "D) They do not require any maintenance."
+            ],
+            answer: "B) They prevent blackouts and minimize energy loss.",
+            topic: "Saber 11 Part 7 (Inference)"
+          },
+          {
+            passage: "The environmental agency (7)___ monitored the river contamination levels since 2010.",
+            question: "Choose the correct option (7):",
+            options: ["A) has", "B) have", "C) having", "D) had"],
+            answer: "A) has",
+            topic: "Saber 11 Part 6 (Verb Tense)"
+          },
+          {
+            passage: "If they protected the wetlands, local communities (8)___ from seasonal flooding.",
+            question: "Select the correct conditional structure (8):",
+            options: ["A) would benefit", "B) will benefit", "C) benefited", "D) would have benefited"],
+            answer: "A) would benefit",
+            topic: "Saber 11 Part 6 (Conditionals)"
+          },
+          {
+            passage: "The community succeeded (9)___ planting over three thousand native pine trees.",
+            question: "Select the correct preposition (9):",
+            options: ["A) in", "B) on", "C) at", "D) with"],
+            answer: "A) in",
+            topic: "Saber 11 Part 5 (Prepositions)"
+          },
+          {
+            passage: "Nuclear fusion promises infinite power with zero radioactive waste. However, duplicating the sun's internal pressure inside magnetic reactors remains a massive technical bottleneck.",
+            question: "What is the primary constraint holding back commercial nuclear fusion?",
+            options: [
+              "A) It generates high levels of carbon monoxide.", 
+              "B) Duplicating the sun's internal pressure remains a bottleneck.", 
+              "C) It is banned by international ethical treaties.", 
+              "D) Magnet technology has not advanced since the 1990s."
+            ],
+            answer: "B) Duplicating the sun's internal pressure remains a bottleneck.",
+            topic: "Saber 11 Part 7 (Critical Analysis)"
+          },
+          {
+            passage: "He came (11)___ with a brilliant design for low-cost solar panels.",
+            question: "Choose the correct option (11):",
+            options: ["A) up", "B) down", "C) along", "D) out"],
+            answer: "A) up",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "Ecotourism generates revenue for local communities while financing nature reserves. However, if tourist density is not regulated, it can cause severe behavioral changes in local fauna.",
+            question: "What is a negative effect of unregulated ecotourism?",
+            options: [
+              "A) It causes high inflation in local currencies.", 
+              "B) It can cause severe behavioral changes in local fauna.", 
+              "C) It reduces the revenue generated for state reserves.", 
+              "D) It increases the reliance on fossil fuels."
+            ],
+            answer: "B) It can cause severe behavioral changes in local fauna.",
+            topic: "Saber 11 Part 7 (Reading Comprehension)"
+          },
+          {
+            passage: "The team had to run (13)___ some final simulations before constructing the wind propeller.",
+            question: "Select the correct option (13):",
+            options: ["A) through", "B) up", "C) down", "D) into"],
+            answer: "A) through",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "They are interested (14)___ purchasing electric trucks for their logistics company.",
+            question: "Select the correct preposition (14):",
+            options: ["A) in", "B) on", "C) at", "D) with"],
+            answer: "A) in",
+            topic: "Saber 11 Part 5 (Prepositions)"
+          },
+          {
+            passage: "Before the minister finished his speech, the activists (15)___ a green banner.",
+            question: "Choose the correct verbal structure (15):",
+            options: ["A) had displayed", "B) display", "C) has displayed", "D) have displayed"],
+            answer: "A) had displayed",
+            topic: "Saber 11 Part 6 (Past Perfect)"
+          },
+          {
+            passage: "The solar grid was (16)___ integrated into the municipal power system.",
+            question: "Select the correct option (16):",
+            options: ["A) seamlessly", "B) seamless", "C) seamlessness", "D) seam"],
+            answer: "A) seamlessly",
+            topic: "Saber 11 Part 6 (Adverbs)"
+          },
+          {
+            passage: "They need to keep (17)___ researching alternative batteries to avoid using cobalt.",
+            question: "Select the correct option (17):",
+            options: ["A) on", "B) up", "C) down", "D) out"],
+            answer: "A) on",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "The ocean clean-up prototype (18)___ by researchers in California next winter.",
+            question: "Select the correct passive structure (18):",
+            options: ["A) will be tested", "B) test", "C) are testing", "D) tested"],
+            answer: "A) will be tested",
+            topic: "Saber 11 Part 6 (Passive Voice)"
+          },
+          {
+            passage: "The old diesel generator finally broke (19)___ after ten years of continuous usage.",
+            question: "Select the correct option (19):",
+            options: ["A) down", "B) up", "C) out", "D) off"],
+            answer: "A) down",
+            topic: "Saber 11 Part 4 (Phrasal Verbs)"
+          },
+          {
+            passage: "The engineer (20)___ developed the green battery received a global science medal.",
+            question: "Choose the correct relative pronoun (20):",
+            options: ["A) who", "B) which", "C) whose", "D) whom"],
+            answer: "A) who",
+            topic: "Saber 11 Part 6 (Relative Clauses)"
           }
         ]
       }
     };
 
-    window.setRegistrationMode = function(mode) {
+    window.selectGrade = function(grade) {
       playSynthSound('click');
-      registrationMode = mode;
+      currentGrade = grade;
       
-      const tabInd = document.getElementById('tab-individual');
-      const tabGrp = document.getElementById('tab-group');
-      const indFields = document.getElementById('wrapper-individual-fields');
-      const grpFields = document.getElementById('wrapper-group-fields');
-
-      if (mode === 'individual') {
-        tabInd.className = "py-3.5 text-xs font-bold tracking-wider rounded-lg transition-all duration-200 bg-crimson text-white";
-        tabGrp.className = "py-3.5 text-xs font-bold tracking-wider rounded-lg transition-all duration-200 text-gray-400 hover:text-white";
-        indFields.classList.remove('hidden');
-        grpFields.classList.add('hidden');
-      } else {
-        tabInd.className = "py-3.5 text-xs font-bold tracking-wider rounded-lg transition-all duration-200 text-gray-400 hover:text-white";
-        tabGrp.className = "py-3.5 text-xs font-bold tracking-wider rounded-lg transition-all duration-200 bg-crimson text-white";
-        indFields.classList.add('hidden');
-        grpFields.classList.remove('hidden');
-      }
+      document.getElementById('day-selector-grade-label').textContent = `Grado ${grade}°`;
+      
+      document.getElementById('screen-home').classList.add('hidden');
+      document.getElementById('screen-day-selector').classList.remove('hidden');
     }
 
-    window.addGroupStudent = function() {
-      const nameInput = document.getElementById('input-add-student-name');
-      const fullName = nameInput.value.trim();
-
-      if (!fullName) return;
-
-      groupStudents.push(fullName);
-      nameInput.value = "";
+    window.goBackToGrades = function() {
       playSynthSound('click');
-      renderGroupRoster();
-    }
-
-    window.removeGroupStudent = function(index) {
-      playSynthSound('discard');
-      groupStudents.splice(index, 1);
-      renderGroupRoster();
-    }
-
-    function renderGroupRoster() {
-      const rosterList = document.getElementById('group-roster-list');
-      const counter = document.getElementById('group-counter');
-      counter.textContent = groupStudents.length;
-
-      if (groupStudents.length === 0) {
-        rosterList.innerHTML = `
-          <div class="text-xs text-gray-500 italic py-2 text-center bg-gray-900 bg-opacity-40 rounded-lg">No hay estudiantes agregados aún.</div>
-        `;
-        return;
-      }
-
-      rosterList.innerHTML = groupStudents.map((student, idx) => `
-        <div class="flex items-center justify-between p-2.5 bg-gray-950 bg-opacity-70 border border-gray-800 rounded-xl">
-          <span class="text-xs font-semibold text-white tracking-wide truncate max-w-[200px]">${idx + 1}. ${student}</span>
-          <button type="button" onclick="removeGroupStudent(${idx})" class="text-xs text-gray-500 hover:text-crimson font-bold px-1.5 transition-colors">
-            ✕
-          </button>
-        </div>
-      `).join('');
-    }
-
-    window.handleRegistration = function(e) {
-      e.preventDefault();
-
-      // Programmatic Validation: Bypass native bubbles and focus constraints in Safari/Android
-      if (registrationMode === 'individual') {
-        const firstName = document.getElementById('input-first-name').value.trim();
-        const lastName = document.getElementById('input-last-name').value.trim();
-        
-        if (!firstName || !lastName) {
-          showRegisterError("Por favor, ingresa tu Nombre y Apellido completos.");
-          return;
-        }
-        studentName = `${firstName} ${lastName}`;
-      } else {
-        if (groupStudents.length < 2) {
-          showRegisterError("Por favor añade al menos 2 estudiantes para jugar en grupo cooperativo.");
-          return;
-        }
-        const customTeam = document.getElementById('input-team-name').value.trim();
-        studentName = customTeam ? customTeam : "Equipo Liceo";
-      }
-
-      playSynthSound('click');
-
-      document.getElementById('header-student-name').textContent = studentName;
-      document.getElementById('welcome-student-name').textContent = studentName;
-      document.getElementById('victory-student-name').textContent = studentName;
-
-      document.getElementById('screen-register').classList.add('hidden');
+      document.getElementById('screen-day-selector').classList.add('hidden');
       document.getElementById('screen-home').classList.remove('hidden');
+    }
+
+    window.selectDay = function(day) {
+      currentDay = day;
+      document.getElementById('screen-day-selector').classList.add('hidden');
+      startMission(currentGrade);
     }
 
     window.startMission = function(grade) {
@@ -1175,9 +1876,9 @@
       score = 0;
       combo = 1;
 
-      const gradeData = database[grade];
+      const dayQuestions = database[grade][currentDay];
       
-      const shuffledAll = shuffleArray(gradeData.questions);
+      const shuffledAll = shuffleArray(dayQuestions);
       questionsPool = shuffledAll.slice(0, totalQuestionsToPlay);
       totalQuestionsToPlay = questionsPool.length;
 
@@ -1187,7 +1888,8 @@
       document.getElementById('live-scoreboard').classList.remove('hidden');
 
       document.getElementById('level-badge').textContent = `GRADO ${grade}°`;
-      document.getElementById('mission-name').textContent = gradeData.missionName;
+      document.getElementById('mission-day-idx').textContent = currentDay;
+      document.getElementById('mission-name').textContent = getMissionName(grade);
       document.getElementById('total-questions-idx').textContent = totalQuestionsToPlay;
 
       const turnBanner = document.getElementById('coop-turn-banner');
@@ -1198,6 +1900,7 @@
       }
 
       document.getElementById('screen-home').classList.add('hidden');
+      document.getElementById('screen-day-selector').classList.add('hidden');
       document.getElementById('screen-victory').classList.add('hidden');
       document.getElementById('screen-gameplay').classList.remove('hidden');
 
@@ -1255,7 +1958,7 @@
         if (currentGrade === 11) {
           const discardBtn = document.createElement('button');
           discardBtn.type = 'button';
-          discardBtn.className = "p-4 rounded-xl bg-gray-950 border border-gray-800 hover:border-red-900 text-gray-500 hover:text-crimson transition-all duration-200 active:scale-[0.99] flex items-center justify-center";
+          discardBtn.className = "p-4 rounded-xl bg-gray-950 border border-gray-800 hover:border-red-900 text-gray-500 hover:text-crimson transition-all duration-200 active:scale-95 flex items-center justify-center";
           discardBtn.title = "Descartar esta opción táctica";
           discardBtn.innerHTML = `
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1286,7 +1989,6 @@
       currentSecondsLeft = maxSeconds;
       questionStartTime = Date.now();
       
-      // Save state to Cloud Vault for persistence recovery
       saveActiveSession();
       startTimer();
     }
@@ -1422,7 +2124,6 @@
       }, 2200);
     }
 
-    // TERMINATION WARNING TRIGGER HANDLER
     window.triggerTerminationWarning = function() {
       playSynthSound('click');
       isTimerPaused = true; 
@@ -1448,7 +2149,6 @@
 
     async function showVictoryScreen() {
       clearInterval(timerInterval);
-      
       await deleteActiveSession();
 
       let rank = "SABER BRONZE";
@@ -1497,6 +2197,7 @@
       document.getElementById('live-scoreboard').classList.add('hidden');
       document.getElementById('screen-gameplay').classList.add('hidden');
       document.getElementById('screen-victory').classList.add('hidden');
+      document.getElementById('screen-day-selector').classList.add('hidden');
       document.getElementById('screen-home').classList.remove('hidden');
     }
 
