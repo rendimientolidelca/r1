@@ -661,9 +661,12 @@
     let isAnsweringBlocked = false;
     let isTimerPaused = false; 
 
-    // --- AUDIO SYSTEM DEFINITIONS ---
+    // --- AUDIO & MUSIC SEQUENCER SYSTEM ---
     let audioEnabled = true;
     let audioCtx = null;
+    let musicPlaying = false;
+    let musicTimer = null;
+    let musicStep = 0;
 
     function initAudioContext() {
       if (!audioCtx) {
@@ -671,6 +674,128 @@
       }
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
+      }
+    }
+
+    function startCompetitionMusic() {
+      if (!audioEnabled) return;
+      if (musicPlaying) return;
+      
+      initAudioContext();
+      musicPlaying = true;
+      musicStep = 0;
+
+      const tempo = 135;
+      const tickTime = (60 / tempo) / 2; // Rítmica de corcheas (8th notes)
+      let nextNoteTime = audioCtx.currentTime;
+
+      function scheduleNextNote() {
+        while (nextNoteTime < audioCtx.currentTime + 0.1) {
+          playSynthesizedMusicStep(musicStep, nextNoteTime);
+          nextNoteTime += tickTime;
+          musicStep = (musicStep + 1) % 16;
+        }
+      }
+
+      musicTimer = setInterval(scheduleNextNote, 25);
+    }
+
+    function stopCompetitionMusic() {
+      musicPlaying = false;
+      if (musicTimer) {
+        clearInterval(musicTimer);
+        musicTimer = null;
+      }
+    }
+
+    function playSynthesizedMusicStep(step, time) {
+      // Línea de Bajo motriz (A minor progression)
+      const bassFrequencies = [
+        55.00, 55.00, 110.00, 55.00,  // Compás 1: La1, La2
+        65.41, 65.41, 130.81, 65.41,  // Compás 2: Do2, Do3
+        49.00, 49.00, 98.00,  49.00,  // Compás 3: Sol1, Sol2
+        43.65, 43.65, 87.31,  103.83  // Compás 4: Fa1, Fa2, Sol#2 (Giro dramático)
+      ];
+
+      // Arpegiador rápido de plomo
+      const leadFrequencies = [
+        220.00, 329.63, 440.00, 329.63,
+        261.63, 392.00, 523.25, 392.00,
+        196.00, 293.66, 392.00, 293.66,
+        174.61, 261.63, 311.13, 415.30
+      ];
+
+      try {
+        // 1. SINTESIS DEL BAJO (Onda de sierra filtrada)
+        const oscBass = audioCtx.createOscillator();
+        const gainBass = audioCtx.createGain();
+        oscBass.type = 'sawtooth';
+        oscBass.frequency.setValueAtTime(bassFrequencies[step], time);
+        
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(320, time);
+
+        oscBass.connect(filter);
+        filter.connect(gainBass);
+        gainBass.connect(audioCtx.destination);
+
+        gainBass.gain.setValueAtTime(0.0, time);
+        gainBass.gain.linearRampToValueAtTime(0.14, time + 0.02);
+        gainBass.gain.exponentialRampToValueAtTime(0.01, time + 0.18);
+
+        oscBass.start(time);
+        oscBass.stop(time + 0.2);
+
+        // 2. SINTESIS DEL ARPEGIADOR LEAD (Onda triangular brillante)
+        if (step % 2 === 0) {
+          const oscLead = audioCtx.createOscillator();
+          const gainLead = audioCtx.createGain();
+          oscLead.type = 'triangle';
+          oscLead.frequency.setValueAtTime(leadFrequencies[step], time);
+
+          const filterLead = audioCtx.createBiquadFilter();
+          filterLead.type = 'peaking';
+          filterLead.frequency.setValueAtTime(1200, time);
+          filterLead.gain.setValueAtTime(4, time);
+
+          oscLead.connect(filterLead);
+          filterLead.connect(gainLead);
+          gainLead.connect(audioCtx.destination);
+
+          gainLead.gain.setValueAtTime(0.0, time);
+          gainLead.gain.linearRampToValueAtTime(0.06, time + 0.01);
+          gainLead.gain.exponentialRampToValueAtTime(0.005, time + 0.35);
+
+          oscLead.start(time);
+          oscLead.stop(time + 0.4);
+        }
+
+        // 3. SINTESIS DEL REDOBLANTE / HI-HAT (Ruido digital retro)
+        if (step % 4 === 2) {
+          const noiseOsc = audioCtx.createOscillator();
+          const noiseGain = audioCtx.createGain();
+          noiseOsc.type = 'square';
+          noiseOsc.frequency.setValueAtTime(10000, time);
+          
+          const noiseFilter = audioCtx.createBiquadFilter();
+          noiseFilter.type = 'highpass';
+          noiseFilter.frequency.setValueAtTime(7500, time);
+
+          noiseOsc.connect(noiseFilter);
+          noiseFilter.connect(noiseGain);
+          noiseGain.connect(audioCtx.destination);
+
+          noiseGain.gain.setValueAtTime(0.0, time);
+          noiseGain.gain.linearRampToValueAtTime(0.018, time + 0.01);
+          noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+
+          noiseOsc.start(time);
+          noiseOsc.stop(time + 0.06);
+        }
+
+      } catch (e) {
+        // Manejador silencioso ante transiciones de pestaña
       }
     }
 
@@ -743,6 +868,15 @@
       document.getElementById('sound-icon-on').classList.toggle('hidden', !audioEnabled);
       document.getElementById('sound-icon-off').classList.toggle('hidden', audioEnabled);
       playSynthSound('click');
+      
+      if (!audioEnabled) {
+        stopCompetitionMusic();
+      } else {
+        const isGameplayVisible = !document.getElementById('screen-gameplay').classList.contains('hidden');
+        if (isGameplayVisible) {
+          startCompetitionMusic();
+        }
+      }
     };
 
     // --- ESCUDO FALLBACK SYSTEM ---
@@ -1010,6 +1144,8 @@
       document.getElementById('screen-gameplay').classList.remove('hidden');
       document.getElementById('live-scoreboard').classList.remove('hidden');
 
+      // Start music upon recovery
+      startCompetitionMusic();
       loadQuestion();
     }
 
@@ -1367,6 +1503,9 @@
       document.getElementById('screen-victory').classList.add('hidden');
       document.getElementById('screen-gameplay').classList.remove('hidden');
 
+      // Start music upon entering test
+      startCompetitionMusic();
+
       loadQuestion();
     }
 
@@ -1608,12 +1747,14 @@
       playSynthSound('victory');
       document.getElementById('modal-confirm-termination').classList.add('hidden');
       
+      stopCompetitionMusic();
       await deleteActiveSession();
       showVictoryScreen();
     }
 
     async function showVictoryScreen() {
       clearInterval(timerInterval);
+      stopCompetitionMusic();
       
       await deleteActiveSession();
 
@@ -1660,6 +1801,7 @@
     window.goHome = function() {
       playSynthSound('click');
       clearInterval(timerInterval);
+      stopCompetitionMusic();
       document.getElementById('live-scoreboard').classList.add('hidden');
       document.getElementById('screen-gameplay').classList.add('hidden');
       document.getElementById('screen-victory').classList.add('hidden');
