@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -193,74 +192,79 @@
     </div>
   </div>
 
-  <!-- MAIN WRAPPER -->
+  <!-- MAIN WRAPPER (Sólido y elevado con stacking context propio en z-30) -->
   <main class="flex-grow w-full max-w-7xl mx-auto px-4 py-8 flex items-center justify-center relative z-30">
     
     <!-- STEP 1: REGISTRO DE NOMBRE / GRUPOS -->
-    <section id="screen-register" class="w-full max-w-md bg-gray-950 border border-gray-800 rounded-2xl p-6 sm:p-8 space-y-6 text-center shadow-2xl relative animate-fade-in">
-      <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-crimson pointer-events-none"></div>
-      <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-crimson pointer-events-none"></div>
-      <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-crimson pointer-events-none"></div>
-      <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-crimson pointer-events-none"></div>
+    <section id="screen-register" class="w-full max-w-md bg-gray-950 border border-gray-800 rounded-2xl p-6 sm:p-8 shadow-2xl relative animate-fade-in">
+      
+      <!-- Decoraciones de las esquinas totalmente libres del flujo de márgenes de espacio (space-y-6 removido de la raíz del section) -->
+      <div class="absolute w-3 h-3 border-t-2 border-l-2 border-crimson pointer-events-none" style="top: 0; left: 0;"></div>
+      <div class="absolute w-3 h-3 border-t-2 border-r-2 border-crimson pointer-events-none" style="top: 0; right: 0;"></div>
+      <div class="absolute w-3 h-3 border-b-2 border-l-2 border-crimson pointer-events-none" style="bottom: 0; left: 0;"></div>
+      <div class="absolute w-3 h-3 border-b-2 border-r-2 border-crimson pointer-events-none" style="bottom: 0; right: 0;"></div>
 
-      <div class="space-y-2">
-        <h2 class="tech-font text-2xl font-black text-white">IDENTIFICACIÓN</h2>
-        <p class="text-xs text-gray-400">Ingresa tus datos para registrar tus progresos en las Temáticas del Segundo Periodo.</p>
-      </div>
-
-      <div class="grid grid-cols-2 p-1 bg-black bg-opacity-60 rounded-xl border border-gray-800">
-        <button id="tab-individual" type="button" onclick="setRegistrationMode('individual')" class="py-3.5 text-xs font-bold tracking-wider rounded-lg transition-all duration-200 bg-crimson text-white">
-          👤 INDIVIDUAL
-        </button>
-        <button id="tab-group" type="button" onclick="setRegistrationMode('group')" class="py-3.5 text-xs font-bold tracking-wider rounded-lg transition-all duration-200 text-gray-400 hover:text-white">
-          👥 EN GRUPO
-        </button>
-      </div>
-
-      <form id="register-form" onsubmit="handleRegistration(event)" class="space-y-4 text-left">
-        <div id="register-error-banner" class="hidden p-3.5 rounded-xl bg-red-950 bg-opacity-80 border border-red-900 text-red-400 text-xs font-bold text-center tracking-wide animate-pulse">
-          Error Message
+      <!-- Contenedor del contenido con space-y-6 aislado para no alterar la posición absoluta de las esquinas -->
+      <div class="space-y-6">
+        <div class="space-y-2 text-center">
+          <h2 class="tech-font text-2xl font-black text-white">IDENTIFICACIÓN</h2>
+          <p class="text-xs text-gray-400">Ingresa tus datos para registrar tus progresos en las Temáticas del Segundo Periodo.</p>
         </div>
 
-        <div id="wrapper-individual-fields" class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Nombre Completo</label>
-            <input type="text" id="input-first-name" placeholder="Ej: Juan Sebastián" class="w-full px-4 py-3.5 rounded-xl bg-gray-900 border border-gray-800 text-white focus:outline-none focus:border-crimson focus:ring-1 focus:ring-crimson transition-all text-sm">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Apellidos</label>
-            <input type="text" id="input-last-name" placeholder="Ej: Martínez Rojas" class="w-full px-4 py-3.5 rounded-xl bg-gray-900 border border-gray-800 text-white focus:outline-none focus:border-crimson focus:ring-1 focus:ring-crimson transition-all text-sm">
-          </div>
+        <div class="grid grid-cols-2 p-1 bg-black bg-opacity-60 rounded-xl border border-gray-800">
+          <button id="tab-individual" type="button" onclick="setRegistrationMode('individual')" class="py-3.5 text-xs font-bold tracking-wider rounded-lg transition-all duration-200 bg-crimson text-white">
+            👤 INDIVIDUAL
+          </button>
+          <button id="tab-group" type="button" onclick="setRegistrationMode('group')" class="py-3.5 text-xs font-bold tracking-wider rounded-lg transition-all duration-200 text-gray-400 hover:text-white">
+            👥 EN GRUPO
+          </button>
         </div>
 
-        <div id="wrapper-group-fields" class="space-y-4 hidden">
-          <div>
-            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Nombre del Equipo (Opcional)</label>
-            <input type="text" id="input-team-name" placeholder="Ej: Equipo Alfa Caribe" class="w-full px-4 py-3.5 rounded-xl bg-gray-900 border border-gray-800 text-white focus:outline-none focus:border-crimson focus:ring-1 focus:ring-crimson transition-all text-sm">
+        <form id="register-form" onsubmit="handleRegistration(event)" class="space-y-4 text-left">
+          <div id="register-error-banner" class="hidden p-3.5 rounded-xl bg-red-950 bg-opacity-80 border border-red-900 text-red-400 text-xs font-bold text-center tracking-wide animate-pulse">
+            Error Message
           </div>
-          
-          <div class="border-t border-gray-800 pt-3">
-            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Añadir Estudiante</label>
-            <div class="flex gap-2">
-              <input type="text" id="input-add-student-name" placeholder="Ej: Carlos Silva" class="flex-grow px-4 py-3.5 rounded-xl bg-gray-900 border border-gray-800 text-white focus:outline-none focus:border-crimson focus:ring-1 focus:ring-crimson transition-all text-sm">
-              <button type="button" onclick="addGroupStudent()" class="px-5 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-all text-sm uppercase">
-                +
-              </button>
+
+          <div id="wrapper-individual-fields" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Nombre Completo</label>
+              <input type="text" id="input-first-name" placeholder="Ej: Juan Sebastián" class="w-full px-4 py-3.5 rounded-xl bg-gray-900 border border-gray-800 text-white focus:outline-none focus:border-crimson focus:ring-1 focus:ring-crimson transition-all text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Apellidos</label>
+              <input type="text" id="input-last-name" placeholder="Ej: Martínez Rojas" class="w-full px-4 py-3.5 rounded-xl bg-gray-900 border border-gray-800 text-white focus:outline-none focus:border-crimson focus:ring-1 focus:ring-crimson transition-all text-sm">
             </div>
           </div>
 
-          <div>
-            <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Miembros del Grupo (<span id="group-counter">0</span>)</span>
-            <div id="group-roster-list" class="max-h-36 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
-              <div class="text-xs text-gray-500 italic py-2 text-center bg-gray-900 bg-opacity-40 rounded-lg">No hay estudiantes agregados aún.</div>
+          <div id="wrapper-group-fields" class="space-y-4 hidden">
+            <div>
+              <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Nombre del Equipo (Opcional)</label>
+              <input type="text" id="input-team-name" placeholder="Ej: Equipo Alfa Caribe" class="w-full px-4 py-3.5 rounded-xl bg-gray-900 border border-gray-800 text-white focus:outline-none focus:border-crimson focus:ring-1 focus:ring-crimson transition-all text-sm">
+            </div>
+            
+            <div class="border-t border-gray-800 pt-3">
+              <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Añadir Estudiante</label>
+              <div class="flex gap-2">
+                <input type="text" id="input-add-student-name" placeholder="Ej: Carlos Silva" class="flex-grow px-4 py-3.5 rounded-xl bg-gray-900 border border-gray-800 text-white focus:outline-none focus:border-crimson focus:ring-1 focus:ring-crimson transition-all text-sm">
+                <button type="button" onclick="addGroupStudent()" class="px-5 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-all text-sm uppercase">
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Miembros del Grupo (<span id="group-counter">0</span>)</span>
+              <div id="group-roster-list" class="max-h-36 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
+                <div class="text-xs text-gray-500 italic py-2 text-center bg-gray-900 bg-opacity-40 rounded-lg">No hay estudiantes agregados aún.</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <button type="submit" class="w-full py-4 mt-2 rounded-xl bg-gradient-to-r from-crimson to-crimson-dark text-white font-bold tracking-wider hover:opacity-90 transform active:scale-[0.99] transition-all text-sm uppercase">
-          Ingresar al Portal
-        </button>
-      </form>
+          <button type="submit" class="w-full py-4 mt-2 rounded-xl bg-gradient-to-r from-crimson to-crimson-dark text-white font-bold tracking-wider hover:opacity-90 transform active:scale-[0.99] transition-all text-sm uppercase">
+            Ingresar al Portal
+          </button>
+        </form>
+      </div>
     </section>
 
     <!-- STEP 2: PANTALLA DE INICIO (HOME / LEVEL SELECTOR) -->
@@ -522,82 +526,90 @@
 
   <!-- CUSTOM SESSION RECOVERY MODAL overlay -->
   <div id="modal-session-recovery" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-95">
-    <div class="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-gray-900 border border-red-900 shadow-2xl relative space-y-6 text-center">
-      <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-crimson"></div>
-      <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-crimson"></div>
-      <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-crimson"></div>
-      <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-crimson"></div>
+    <div class="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-gray-900 border border-red-900 shadow-2xl relative text-center">
+      
+      <!-- Decoración de brackets aislada de space-y-6 -->
+      <div class="absolute w-3 h-3 border-t-2 border-l-2 border-crimson pointer-events-none" style="top: 0; left: 0;"></div>
+      <div class="absolute w-3 h-3 border-t-2 border-r-2 border-crimson pointer-events-none" style="top: 0; right: 0;"></div>
+      <div class="absolute w-3 h-3 border-b-2 border-l-2 border-crimson pointer-events-none" style="bottom: 0; left: 0;"></div>
+      <div class="absolute w-3 h-3 border-b-2 border-r-2 border-crimson pointer-events-none" style="bottom: 0; right: 0;"></div>
 
-      <div class="space-y-2">
-        <span class="inline-flex py-1 px-3 bg-red-950 text-red-400 border border-red-900 rounded-full text-xs font-bold uppercase tracking-widest animate-pulse">
-          ⚡ Misión Pendiente
-        </span>
-        <h3 class="tech-font text-xl font-black text-white tracking-wider">¿REANUDAR PRUEBA?</h3>
-        <p class="text-xs text-gray-400">
-          Detectamos una sesión incompleta asociada a tu cuenta para:
-        </p>
-      </div>
+      <div class="space-y-6">
+        <div class="space-y-2">
+          <span class="inline-flex py-1 px-3 bg-red-950 text-red-400 border border-red-900 rounded-full text-xs font-bold uppercase tracking-widest animate-pulse">
+            ⚡ Misión Pendiente
+          </span>
+          <h3 class="tech-font text-xl font-black text-white tracking-wider">¿REANUDAR PRUEBA?</h3>
+          <p class="text-xs text-gray-400">
+            Detectamos una sesión incompleta asociada a tu cuenta para:
+          </p>
+        </div>
 
-      <div class="p-4 bg-black bg-opacity-55 rounded-xl border border-gray-800 text-left space-y-2.5">
-        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Estudiante / Equipo</div>
-        <div id="recovery-student-label" class="text-sm font-black text-white uppercase tracking-widest truncate">Juan Pérez</div>
-        
-        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-gray-900">
-          <div>
-            <span class="block text-[10px] text-gray-500 font-bold uppercase tracking-wider">Grado</span>
-            <span id="recovery-grade-label" class="text-xs font-black text-crimson uppercase tracking-wide">Grado 9°</span>
-          </div>
-          <div>
-            <span class="block text-[10px] text-gray-500 font-bold uppercase tracking-wider">Puntaje</span>
-            <span id="recovery-score-label" class="text-xs font-black text-white tracking-wide">400 pts</span>
+        <div class="p-4 bg-black bg-opacity-55 rounded-xl border border-gray-800 text-left space-y-2.5">
+          <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Estudiante / Equipo</div>
+          <div id="recovery-student-label" class="text-sm font-black text-white uppercase tracking-widest truncate">Juan Pérez</div>
+          
+          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-gray-900">
+            <div>
+              <span class="block text-[10px] text-gray-500 font-bold uppercase tracking-wider">Grado</span>
+              <span id="recovery-grade-label" class="text-xs font-black text-crimson uppercase tracking-wide">Grado 9°</span>
+            </div>
+            <div>
+              <span class="block text-[10px] text-gray-500 font-bold uppercase tracking-wider">Puntaje</span>
+              <span id="recovery-score-label" class="text-xs font-black text-white tracking-wide">400 pts</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="flex flex-col sm:flex-row gap-3">
-        <button onclick="actionConfirmRecovery()" class="w-full py-4 rounded-xl bg-gradient-to-r from-crimson to-crimson-dark text-white font-bold tracking-wider text-sm uppercase hover:opacity-90 transition-all transform active:scale-[0.99]">
-          Reanudar Misión
-        </button>
-        <button onclick="actionDiscardRecovery()" class="w-full py-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700 text-sm font-bold tracking-wider uppercase transition-all transform active:scale-[0.99]">
-          Empezar Nueva
-        </button>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button onclick="actionConfirmRecovery()" class="w-full py-4 rounded-xl bg-gradient-to-r from-crimson to-crimson-dark text-white font-bold tracking-wider text-sm uppercase hover:opacity-90 transition-all transform active:scale-[0.99]">
+            Reanudar Misión
+          </button>
+          <button onclick="actionDiscardRecovery()" class="w-full py-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700 text-sm font-bold tracking-wider uppercase transition-all transform active:scale-[0.99]">
+            Empezar Nueva
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- CUSTOM CONFIRM TERMINATION MODAL overlay -->
   <div id="modal-confirm-termination" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-95">
-    <div class="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-gray-900 border border-red-900 shadow-2xl relative space-y-6 text-center">
-      <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-crimson"></div>
-      <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-crimson"></div>
-      <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-crimson"></div>
-      <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-crimson"></div>
+    <div class="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-gray-900 border border-red-900 shadow-2xl relative text-center">
+      
+      <!-- Decoración de brackets aislada de space-y-6 -->
+      <div class="absolute w-3 h-3 border-t-2 border-l-2 border-crimson pointer-events-none" style="top: 0; left: 0;"></div>
+      <div class="absolute w-3 h-3 border-t-2 border-r-2 border-crimson pointer-events-none" style="top: 0; right: 0;"></div>
+      <div class="absolute w-3 h-3 border-b-2 border-l-2 border-crimson pointer-events-none" style="bottom: 0; left: 0;"></div>
+      <div class="absolute w-3 h-3 border-b-2 border-r-2 border-crimson pointer-events-none" style="bottom: 0; right: 0;"></div>
 
-      <div class="space-y-2">
-        <span class="inline-flex py-1 px-3 bg-red-950 text-red-400 border border-red-900 rounded-full text-xs font-bold uppercase tracking-widest">
-          ⚠️ Advertencia
-        </span>
-        <h3 class="tech-font text-xl font-black text-white tracking-wider">¿CONCLUIR ENTRENAMIENTO?</h3>
-        <p class="text-xs text-gray-400">
-          ¿Estás seguro de que deseas terminar la prueba en curso antes de responder todas las preguntas?
-        </p>
-      </div>
+      <div class="space-y-6">
+        <div class="space-y-2">
+          <span class="inline-flex py-1 px-3 bg-red-950 text-red-400 border border-red-900 rounded-full text-xs font-bold uppercase tracking-widest">
+            ⚠️ Advertencia
+          </span>
+          <h3 class="tech-font text-xl font-black text-white tracking-wider">¿CONCLUIR ENTRENAMIENTO?</h3>
+          <p class="text-xs text-gray-400">
+            ¿Estás seguro de que deseas terminar la prueba en curso antes de responder todas las preguntas?
+          </p>
+        </div>
 
-      <div class="p-4 bg-black bg-opacity-55 rounded-xl border border-gray-800">
-        <p class="text-xs text-gray-400 font-medium leading-relaxed">
-          Tu progreso actual se consolidará y el sistema registrará tu puntaje acumulado de:
-        </p>
-        <span id="termination-score-preview" class="tech-font block text-2xl font-black text-white text-glow-crimson mt-2">0</span>
-        <span class="block text-[10px] text-gray-500 uppercase tracking-widest font-semibold mt-1">Puntos Acumulados</span>
-      </div>
+        <div class="p-4 bg-black bg-opacity-55 rounded-xl border border-gray-800">
+          <p class="text-xs text-gray-400 font-medium leading-relaxed">
+            Tu progreso actual se consolidará y el sistema registrará tu puntaje acumulado de:
+          </p>
+          <span id="termination-score-preview" class="tech-font block text-2xl font-black text-white text-glow-crimson mt-2">0</span>
+          <span class="block text-[10px] text-gray-500 uppercase tracking-widest font-semibold mt-1">Puntos Acumulados</span>
+        </div>
 
-      <div class="flex flex-col sm:flex-row gap-3">
-        <button onclick="actionConfirmTermination()" class="w-full py-4 rounded-xl bg-gradient-to-r from-crimson to-crimson-dark text-white font-bold tracking-wider text-sm uppercase hover:opacity-90 transition-all transform active:scale-[0.99]">
-          Sí, Terminar Prueba
-        </button>
-        <button onclick="actionCancelTermination()" class="w-full py-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700 text-sm font-bold tracking-wider uppercase transition-all transform active:scale-[0.99]">
-          Seguir Jugando
-        </button>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button onclick="actionConfirmTermination()" class="w-full py-4 rounded-xl bg-gradient-to-r from-crimson to-crimson-dark text-white font-bold tracking-wider text-sm uppercase hover:opacity-90 transition-all transform active:scale-[0.99]">
+            Sí, Terminar Prueba
+          </button>
+          <button onclick="actionCancelTermination()" class="w-full py-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700 text-sm font-bold tracking-wider uppercase transition-all transform active:scale-[0.99]">
+            Seguir Jugando
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -616,7 +628,6 @@
 
   <!-- CORE JAVASCRIPT GAMEPLAY LOGIC -->
   <script type="module">
-    // --- STREAMING_CHUNK: Initializing Firebase and State... ---
     // --- FIREBASE INTEGRATION SETUP ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -650,7 +661,6 @@
     let isAnsweringBlocked = false;
     let isTimerPaused = false; 
 
-    // --- STREAMING_CHUNK: Initializing Audio Engine... ---
     // --- AUDIO SYSTEM DEFINITIONS ---
     let audioEnabled = true;
     let audioCtx = null;
@@ -858,7 +868,7 @@
       document.getElementById('screen-home').classList.remove('hidden');
     };
 
-    // --- STREAMING_CHUNK: Connecting to cloud services... ---
+    // --- CONNECTING TO CLOUD SERVICES ---
     async function initCloudVault() {
       const cloudLoader = document.getElementById('cloud-loader');
       setTimeout(() => {
@@ -1010,7 +1020,7 @@
       cachedRecoveredSession = null;
     }
 
-    // --- STREAMING_CHUNK: Loading massive vocabulary/grammar databases... ---
+    // --- LOADING MASSIVE VOCABULARY/GRAMMAR DATABASES ---
     function getMissionName(grade) {
       if (grade === 9) return "Eco-Fanatics";
       if (grade === 10) return "The Lucky House";
@@ -1166,7 +1176,7 @@
           { question: "He avoided walking under the _________ to keep his luck clean.", options: ["ladder", "clover", "leprechaun"], answer: "ladder", topic: "Vocabulary: Superstitions" },
           { question: "My uncle carries a silver replica of a rabbit's _________ on his keychain.", options: ["foot", "ear", "nose"], answer: "foot", topic: "Vocabulary: Superstitions" },
           { question: "She walked _________ across the old wooden floor to avoid making noise.", options: ["silently", "noisily", "boldly"], answer: "silently", topic: "Grammar: Adverbs of Manner" },
-          { question: "I _________ dropped my lucky amulet in the river.", options: ["accidentally", "neatly", "cautiously"], answer: "accidentally", topic: "Grammar: Adverbs of Manner" },
+          { question: "I _________ accidentally dropped my lucky amulet in the river.", options: ["accidentally", "neatly", "cautiously"], answer: "accidentally", topic: "Grammar: Adverbs of Manner" },
           { question: "The papers were arranged _________ inside the leather folder.", options: ["neatly", "noisily", "badly"], answer: "neatly", topic: "Grammar: Adverbs of Manner" },
           { question: "He looked _________ around before crossing the busy street.", options: ["cautiously", "loudly", "silently"], answer: "cautiously", topic: "Grammar: Adverbs of Manner" },
           { question: "If you _________ (not walk) under ladders, you would feel safer.", options: ["didn't walk", "don't walk", "haven't walked"], answer: "didn't walk", topic: "Grammar: Second Conditional" },
@@ -1218,7 +1228,7 @@
           { passage: "Many outdated combustion engines are being phased (15)___ worldwide to meet modern carbon-neutral green goals.", question: "Select the option to complete the phrase (15):", options: ["A) out", "B) off", "C) in", "D) away"], answer: "A) out", topic: "Saber 11 Part 4 (Phrasal Verbs)" },
           { passage: "The Great Barrier Reef is under severe ecological stress from rising ocean temperatures, which leads to widespread coral bleaching. Marine biologists argue that immediate systemic industrial action is required globally, rather than small-scale localized cleanup projects, which only mask the symptoms of the disaster.", question: "What do marine biologists suggest to solve the bleaching problem?", options: ["A) Small local cleanup projects are the most cost-efficient path.", "B) Broad, global systemic changes are necessary to address the root cause.", "C) Rising temperatures will stabilize naturally without human intervention.", "D) Coral reefs are permanently unsavable, so focus must shift to land biomes."], answer: "B) Broad, global systemic changes are necessary to address the root cause.", topic: "Saber 11 Part 7 (Critical Analysis)" },
           { passage: "Renewable energy technologies (17)___ grown exponentially over the past decade, defying expectations from conservative economic forecasters.", question: "Choose the correct option to complete the blank space (17):", options: ["A) have", "B) had", "C) has", "D) having"], answer: "A) have", topic: "Saber 11 Part 6 (Verb Tense)" },
-          { passage: "If global leaders (18)___ signed the environmental treaty in 2015, our oceans would be significantly cleaner today.", question: "Choose the correct option to complete the conditional (18):", options: ["A) had", "B) would have", "C) did", "D) have"], answer: "A) had", topic: "Saber 11 Part 6 (Grammar Struct)" },
+          { passage: "If global leaders (18)___ signed the environmental treaty in 2015, our oceans would be significantly cleaner today.", question: "Choose the correct option to complete the conditional (18):", options: ["A) had", "B) would have", "C) did", "D) have"], answer: "A) had", topic: "Saber 11 Part 6 (Conditionals)" },
           { passage: "We must always take all potential environmental consequences (19)___ account before initiating any mass production processes.", question: "Select the correct option (19):", options: ["A) into", "B) over", "C) for", "D) onto"], answer: "A) into", topic: "Saber 11 Part 5 (Prepositional Verbs)" },
           { passage: "Quantum computing leverages subatomic physics to process data at incredible speeds. However, keeping the subatomic processors stable requires near absolute-zero thermal conditions, making standard industrial integration highly challenging for modern computer firms.", question: "What is the primary constraint holding back standard integration of quantum computers?", options: ["A) Processing speeds are still slower than commercial silicon processors.", "B) The subatomic processors require extreme, difficult-to-maintain cooling.", "C) Computer manufacturers refuse to fund development on quantum research.", "D) Quantum computers do not possess enough memory storage space."], answer: "B) The subatomic processors require extreme, difficult-to-maintain cooling.", topic: "Saber 11 Part 7 (Inference)" }
         ],
@@ -1291,7 +1301,7 @@
       }
     };
 
-    // --- STREAMING_CHUNK: Setting up navigation methods... ---
+    // --- NAVIGATION METHODS ---
     window.selectGrade = function(grade) {
       playSynthSound('click');
       currentGrade = grade;
@@ -1326,7 +1336,7 @@
       // Extract raw bank questions for Selected Day
       const dayQuestions = database[grade][currentDay];
       
-      // SHUFFLE & SELECT EXACTLY 10 RANDOM QUESTIONS FOR THE TEST (As requested!)
+      // SHUFFLE & SELECT EXACTLY 10 RANDOM QUESTIONS FOR THE TEST
       const shuffledAll = shuffleArray(dayQuestions);
       questionsPool = shuffledAll.slice(0, totalQuestionsToPlay);
       totalQuestionsToPlay = questionsPool.length;
@@ -1446,7 +1456,7 @@
       startTimer();
     }
 
-    // --- STREAMING_CHUNK: Configuring timer controls... ---
+    // --- CONFIGURING TIMER CONTROLS ---
     function startTimer() {
       clearInterval(timerInterval);
       
@@ -1578,7 +1588,7 @@
       }, 2200);
     }
 
-    // --- STREAMING_CHUNK: Creating final session stats... ---
+    // --- CREATING FINAL SESSION STATS ---
     window.triggerTerminationWarning = function() {
       playSynthSound('click');
       isTimerPaused = true; 
